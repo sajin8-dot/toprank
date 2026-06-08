@@ -665,7 +665,8 @@ function renderJournal() {
 
       <div class="lesson-card-actions">
         <button class="btn btn-secondary btn-sm btn-round-sm btn-update-ratings" data-id="${lesson.id}">✏️ Update Ratings</button>
-        <button class="btn btn-danger btn-sm btn-round-sm btn-delete-lesson" data-id="${lesson.id}">🗑️ Exam Complete</button>
+        <button class="btn btn-secondary btn-sm btn-round-sm btn-exam-complete" style="background-color: #d1f7ec; color: #0fb9b1; border-color: #a5f3df;" data-id="${lesson.id}">✅ Exam Complete</button>
+        <button class="btn btn-danger btn-sm btn-round-sm btn-delete-lesson" data-id="${lesson.id}">🗑️ Delete Lesson</button>
       </div>
     `;
 
@@ -674,9 +675,16 @@ function renderJournal() {
       openUpdateRatingsModal(lesson.id);
     });
 
+    // Hook exam complete button
+    card.querySelector('.btn-exam-complete').addEventListener('click', () => {
+      if (confirm(`Exam completed! 🥳 Are you sure you want to remove '${lesson.topicName}' from the board? A kid won't have to revisit this lesson.`)) {
+        completeLesson(lesson.id);
+      }
+    });
+
     // Hook delete button
     card.querySelector('.btn-delete-lesson').addEventListener('click', () => {
-      if (confirm(`Exam completed! 🥳 Are you sure you want to delete '${lesson.topicName}' from the board? A kid won't have to revisit this lesson.`)) {
+      if (confirm(`Are you sure you want to delete '${lesson.topicName}'? Use this if it was a wrong entry.`)) {
         deleteLesson(lesson.id);
       }
     });
@@ -902,13 +910,24 @@ function populateSubjectDropdowns() {
   quizSubjSelect.innerHTML = optionsHtml;
 }
 
-// Delete Lesson
-function deleteLesson(lessonId) {
+// Complete Lesson (Exam Complete)
+function completeLesson(lessonId) {
   const lesson = state.lessons.find(l => l.id === lessonId);
   if (!lesson) return;
 
   state.lessons = state.lessons.filter(l => l.id !== lessonId);
   logActivity(state.currentKidId, "delete", `🗑️ Lesson '${lesson.topicName}' removed from ${lesson.subjectName} (Exam complete! 🎉)`);
+  saveState();
+  renderAll();
+}
+
+// Delete Lesson (Wrong Entry)
+function deleteLesson(lessonId) {
+  const lesson = state.lessons.find(l => l.id === lessonId);
+  if (!lesson) return;
+
+  state.lessons = state.lessons.filter(l => l.id !== lessonId);
+  logActivity(state.currentKidId, "delete", `🗑️ Deleted lesson '${lesson.topicName}' from ${lesson.subjectName} (correction/cleanup).`);
   saveState();
   renderAll();
 }
@@ -1242,6 +1261,7 @@ function renderAll() {
   renderSubjectOverviewAccordion();
   renderJournal();
   renderQuizzes();
+  renderMasterSubjects();
   renderActivityLog();
   updateSimulatorDisplay();
 }
