@@ -910,14 +910,18 @@ function renderJournal() {
     return;
   }
 
+  // Initialize lesson expansion tracker
+  if (!window.expandedLessons) window.expandedLessons = {};
+
   // Draw Lesson Cards
   filteredLessons.forEach(lesson => {
     const subjConfig = getSubjectConfig(lesson.subjectName, lesson.kidId);
     const lessonRating = getLessonRating(lesson);
     const badgeClass = getScoreBadgeClass(lessonRating);
+    const isLessonExpanded = window.expandedLessons[lesson.id] === true;
 
     const card = document.createElement('div');
-    card.className = 'card lesson-card';
+    card.className = `card lesson-card ${isLessonExpanded ? 'expanded' : 'collapsed'}`;
     card.style.borderLeftColor = subjConfig.color;
 
     // Build sub-sections list html
@@ -954,9 +958,12 @@ function renderJournal() {
     const displayDate = new Date(lesson.createdDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
     card.innerHTML = `
-      <div class="lesson-card-header">
+      <div class="lesson-card-header" style="cursor: pointer; user-select: none;">
         <div>
-          <h4>${lesson.topicName}</h4>
+          <h4 style="display: flex; align-items: center; gap: 8px;">
+            <span class="lesson-chevron" style="font-size: 0.7rem; color: var(--text-muted); transition: transform 0.2s ease; display: inline-block; transform: ${isLessonExpanded ? 'rotate(90deg)' : 'rotate(0deg)'};">▶</span>
+            ${lesson.topicName}
+          </h4>
           <div class="lesson-meta-row" style="margin-top: 4px;">
             <span class="subject-badge-pill" style="background-color: ${subjConfig.color};">${lesson.subjectName}</span>
             <span class="lesson-date-badge">Added: ${displayDate}</span>
@@ -979,6 +986,12 @@ function renderJournal() {
         <button class="btn btn-danger btn-sm btn-round-sm btn-icon-only btn-delete-lesson" data-id="${lesson.id}" title="Delete Lesson">🗑️</button>
       </div>
     `;
+
+    // Hook card expansion toggle on header click
+    card.querySelector('.lesson-card-header').addEventListener('click', () => {
+      window.expandedLessons[lesson.id] = !window.expandedLessons[lesson.id];
+      renderJournal();
+    });
 
     // Hook edit lesson button (title/subject)
     card.querySelector('.btn-edit-lesson').addEventListener('click', () => {
@@ -1963,6 +1976,17 @@ btnPwaClose.addEventListener('click', () => {
 });
 
 // --- INITIALIZE APPLICATION ---
+// Subject summary toggle listener
+const elSummaryToggle = document.getElementById('subject-summary-toggle');
+const elSummaryArrow = document.getElementById('subject-summary-arrow');
+
+if (elSummaryToggle && elAccordionDashboard && elSummaryArrow) {
+  elSummaryToggle.addEventListener('click', () => {
+    const isCollapsed = elAccordionDashboard.classList.toggle('collapsed');
+    elSummaryArrow.textContent = isCollapsed ? '▶' : '▼';
+  });
+}
+
 loadState();
 renderAll();
 populateSubjectDropdowns();

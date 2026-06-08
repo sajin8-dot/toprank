@@ -77,10 +77,10 @@
 
       <!-- TOP-LEVEL SUBJECT OVERVIEW ACCORDION (Weakest Subject First) -->
       <section class="subject-overview-section">
-        <div class="section-header-row">
-          <h2 class="section-title">Subject Summary <span class="subtitle">(Weakest on top!)</span></h2>
+        <div class="section-header-row" id="subject-summary-toggle" style="cursor: pointer; user-select: none;">
+          <h2 class="section-title">Subject Summary <span class="subtitle">(Weakest on top!)</span> <span id="subject-summary-arrow" class="summary-toggle-arrow" style="font-size: 0.85rem; margin-left: 6px; color: var(--text-muted);">▶</span></h2>
         </div>
-        <div class="accordion-container" id="subject-accordion-dashboard">
+        <div class="accordion-container collapsed" id="subject-accordion-dashboard">
           <!-- Rendered dynamically: Accordions for each subject -->
         </div>
       </section>

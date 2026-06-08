@@ -1807,6 +1807,14 @@ body.dark .menu-item,
 body.dark .menu-profile-name {
   color: #e0e0e0;
 }
+/* --- Collapsible Sections (Subject Summary & Lesson Cards) --- */
+#subject-accordion-dashboard.collapsed {
+  display: none;
+}
+.lesson-card.collapsed .lesson-card-subsections,
+.lesson-card.collapsed .lesson-card-actions {
+  display: none;
+}
 
 /* --- MOBILE RESPONSIVENESS MEDIA OVERRIDES --- */
 @media (max-width: 600px) {
