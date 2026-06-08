@@ -428,19 +428,51 @@ function getScoreStatusLabel(score) {
 
 // --- RENDER FUNCTIONS ---
 
-// 1. Render Kid Selector Dropdown
+// 1. Render Kid Selector — circular profile button + dropdown menu
 function renderKidSelector() {
-  if (!elKidProfileDropdown) return;
-  elKidProfileDropdown.innerHTML = '';
+  const currentKid = state.kids.find(k => k.id === state.currentKidId);
+  if (!currentKid) return;
+
+  // Update the main circular avatar button
+  const elInitial = document.getElementById('current-profile-initial');
+  const elImg = document.getElementById('current-profile-img');
+  const photo = state.kidPhotos && state.kidPhotos[currentKid.id];
+
+  if (photo) {
+    elInitial.style.display = 'none';
+    elImg.src = photo;
+    elImg.style.display = 'block';
+  } else {
+    elInitial.textContent = currentKid.name.charAt(0).toUpperCase();
+    elInitial.style.display = 'block';
+    elImg.style.display = 'none';
+  }
+
+  // Populate switch-profile options (other kids only)
+  const elOptions = document.getElementById('switch-profile-options');
+  if (!elOptions) return;
+  elOptions.innerHTML = '';
   state.kids.forEach(kid => {
-    const isSelected = kid.id === state.currentKidId;
-    const option = document.createElement('option');
-    option.value = kid.id;
-    option.textContent = `${kid.name} (${kid.std})`;
-    if (isSelected) {
-      option.selected = true;
-    }
-    elKidProfileDropdown.appendChild(option);
+    const btn = document.createElement('button');
+    btn.className = `menu-item menu-profile-option${kid.id === state.currentKidId ? ' active' : ''}`;
+    const kidPhoto = state.kidPhotos && state.kidPhotos[kid.id];
+    btn.innerHTML = `
+      <span class="menu-profile-avatar">
+        ${kidPhoto
+          ? `<img src="${kidPhoto}" alt="${kid.name}">`
+          : `<span>${kid.name.charAt(0)}</span>`}
+      </span>
+      <span class="menu-profile-name">${kid.name}<br><small>${kid.std}</small></span>
+      ${kid.id === state.currentKidId ? '<span class="menu-check">✓</span>' : ''}
+    `;
+    btn.addEventListener('click', () => {
+      state.currentKidId = kid.id;
+      currentJournalFilter = 'All';
+      saveState();
+      renderAll();
+      closeProfileMenu();
+    });
+    elOptions.appendChild(btn);
   });
 }
 
@@ -473,7 +505,7 @@ function renderKidStats() {
     }
   });
 
-  const weakestDisplayText = weakestSubj !== "None" ? `${weakestSubj} (${minScore.toFixed(1)}/10)` : "None yet";
+  const weakestDisplayText = weakestSubj !== 'None' ? weakestSubj : 'None yet';
 
   elKidSummary.innerHTML = `
     <div class="kid-summary-meta">
@@ -481,18 +513,16 @@ function renderKidStats() {
       <p>Tracking school items for ${kid.std}</p>
     </div>
     <div class="stat-box">
-      <span class="stat-val">${overallPercentage}%</span>
       <span class="stat-label">Prep Index</span>
+      <span class="stat-val">${overallPercentage}%</span>
     </div>
     <div class="stat-box">
-      <span class="stat-val">${kidLessons.length}</span>
       <span class="stat-label">Active Lessons</span>
+      <span class="stat-val">${kidLessons.length}</span>
     </div>
     <div class="stat-box weakest">
-      <span class="stat-val" style="font-size: 1.1rem; line-height: 1.8rem; height: 1.8rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 150px;">
-        ${weakestDisplayText}
-      </span>
       <span class="stat-label">Weakest Subject</span>
+      <span class="stat-val stat-val-subject">${weakestDisplayText}</span>
     </div>
   `;
   
@@ -777,7 +807,7 @@ function renderJournal() {
           <h4>${lesson.topicName}</h4>
           <div class="lesson-meta-row" style="margin-top: 4px;">
             <span class="subject-badge-pill" style="background-color: ${subjConfig.color};">${lesson.subjectName}</span>
-            <span class="lesson-date-badge">Joined: ${displayDate}</span>
+            <span class="lesson-date-badge">Added: ${displayDate}</span>
           </div>
         </div>
         <div class="lesson-overall-score">
@@ -1535,13 +1565,56 @@ document.getElementById('btn-clear-logs').addEventListener('click', () => {
   }
 });
 
-// Kid profile dropdown selection change listener
-if (elKidProfileDropdown) {
-  elKidProfileDropdown.addEventListener('change', (e) => {
-    state.currentKidId = e.target.value;
-    currentJournalFilter = "All"; // reset filter
-    saveState();
-    renderAll();
+// --- PROFILE MENU (circular avatar + dropdown) ---
+
+function openProfileMenu() {
+  document.getElementById('profile-dropdown-menu').classList.add('open');
+}
+
+function closeProfileMenu() {
+  document.getElementById('profile-dropdown-menu').classList.remove('open');
+}
+
+// Toggle dropdown on avatar button click
+const elAvatarBtn = document.getElementById('current-profile-avatar-btn');
+if (elAvatarBtn) {
+  elAvatarBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const menu = document.getElementById('profile-dropdown-menu');
+    menu.classList.toggle('open');
+  });
+}
+
+// Close menu on outside click
+document.addEventListener('click', (e) => {
+  const container = document.getElementById('profile-menu-container');
+  if (container && !container.contains(e.target)) {
+    closeProfileMenu();
+  }
+});
+
+// Update Photo button triggers hidden file input
+const elUpdatePhoto = document.getElementById('btn-menu-update-photo');
+const elPhotoUploader = document.getElementById('profile-photo-uploader');
+if (elUpdatePhoto && elPhotoUploader) {
+  elUpdatePhoto.addEventListener('click', () => {
+    closeProfileMenu();
+    elPhotoUploader.click();
+  });
+
+  elPhotoUploader.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (!state.kidPhotos) state.kidPhotos = {};
+      state.kidPhotos[state.currentKidId] = ev.target.result;
+      saveState();
+      renderKidSelector();
+    };
+    reader.readAsDataURL(file);
+    // Reset so the same file can be re-selected
+    elPhotoUploader.value = '';
   });
 }
 

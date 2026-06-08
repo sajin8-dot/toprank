@@ -410,6 +410,16 @@ h1, h2, h3, h4 {
 .stat-box.weakest .stat-val {
   color: var(--color-weak);
 }
+/* Weakest subject name — slightly smaller font so long names don't overflow */
+.stat-val-subject {
+  font-size: 1.2rem !important;
+  line-height: 1.3;
+  max-width: 140px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+}
 
 /* --- SUBJECT OVERVIEW ACCORDION DASHBOARD --- */
 .accordion-container {
@@ -1579,4 +1589,173 @@ body.dark .time-travel-tool {
   transform: scale(1.3);
 }
 
+/* ==========================================================================
+   PROFILE MENU  —  circular avatar button + dropdown
+   ========================================================================== */
 
+.profile-menu-container {
+  position: relative;
+}
+
+/* The circular avatar/initial button */
+.profile-avatar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--brand-pink);
+  background: linear-gradient(135deg, var(--brand-pink), #ff9f43);
+  color: #fff;
+  font-family: var(--font-header);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+  flex-shrink: 0;
+}
+.profile-avatar-btn:hover {
+  box-shadow: 0 0 0 3px rgba(255, 123, 144, 0.30);
+  transform: scale(1.06);
+}
+.profile-avatar-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The dropdown panel */
+.profile-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: var(--paper-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 9999;
+  border: 1px solid var(--border-light);
+  animation: dropdown-in 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.profile-dropdown-menu.open {
+  display: block;
+}
+
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Section header inside the dropdown */
+.menu-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  padding: 12px 16px 6px;
+}
+
+/* Divider */
+.menu-divider {
+  border: none;
+  border-top: 1px solid var(--border-light);
+  margin: 4px 0;
+}
+
+/* Generic menu item button */
+.menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 16px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  text-align: left;
+  gap: 10px;
+  transition: background var(--transition-fast);
+}
+.menu-item:hover {
+  background-color: #faf9f6;
+}
+
+/* Profile-specific row inside the dropdown */
+.menu-profile-option {
+  gap: 10px;
+  padding: 8px 16px;
+}
+.menu-profile-option.active {
+  background-color: var(--brand-pink-light);
+}
+
+/* Small avatar circle in the profile list */
+.menu-profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-pink), #ff9f43);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.menu-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.menu-profile-name {
+  flex: 1;
+  line-height: 1.3;
+}
+.menu-profile-name small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.menu-check {
+  color: var(--brand-pink);
+  font-weight: 700;
+  margin-left: auto;
+}
+
+/* ==========================================================================
+   DARK MODE  —  profile menu
+   ========================================================================== */
+body.dark .profile-avatar-btn {
+  border-color: var(--brand-pink);
+}
+body.dark .profile-dropdown-menu {
+  background: #1e1e2e;
+  border-color: #333;
+}
+body.dark .menu-item:hover {
+  background-color: #2a2a3e;
+}
+body.dark .menu-profile-option.active {
+  background-color: rgba(255, 123, 144, 0.15);
+}
+body.dark .menu-section-title {
+  color: #888;
+}
+body.dark .menu-divider {
+  border-color: #333;
+}
+body.dark .menu-item,
+body.dark .menu-profile-name {
+  color: #e0e0e0;
+}

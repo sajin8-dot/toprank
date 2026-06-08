@@ -32,12 +32,22 @@
 
       <!-- Header Controls -->
       <div class="header-controls" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <!-- Kid Select Dropdown -->
-        <div class="profile-select-wrapper" style="display: flex; align-items: center; gap: 6px;">
-          <select id="kid-profile-dropdown" class="profile-dropdown">
-            <!-- Options dynamically loaded in app.js -->
-          </select>
+        <!-- Circular Profile Selection Menu -->
+        <div class="profile-menu-container" id="profile-menu-container">
+          <button class="profile-avatar-btn" id="current-profile-avatar-btn" aria-haspopup="menu" aria-label="Profile menu">
+            <span id="current-profile-initial">R</span>
+            <img id="current-profile-img" src="" alt="Profile Photo" style="display:none;">
+          </button>
+          <div class="profile-dropdown-menu" id="profile-dropdown-menu">
+            <div class="menu-section-title">Switch Board</div>
+            <div id="switch-profile-options">
+              <!-- Rendered dynamically in app.js -->
+            </div>
+            <hr class="menu-divider">
+            <button class="menu-item" id="btn-menu-update-photo">Update Photo</button>
+          </div>
         </div>
+        <input type="file" id="profile-photo-uploader" accept="image/*" style="display:none;">
 
         <!-- Theme Toggle -->
         <button id="btn-theme-toggle" class="btn btn-secondary btn-sm btn-round-sm btn-icon-only" title="Toggle Dark/Light Mode" style="font-size: 0.95rem;">🌙</button>
