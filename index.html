@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TopRank - Bullet Journal Learning Tracker</title>
+  <!-- Google Fonts: Outfit (modern sans) & Fredoka (rounded, kid-friendly) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ff7b90">
+  <!-- Mobile Capable -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icon.svg">
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <img src="icon.svg" alt="TopRank Logo" class="header-logo">
+        <div class="logo-text">
+          <h1>TopRank</h1>
+          <p class="tagline">Bullet Journal Tracker 📓</p>
+        </div>
+      </div>
+
+      <!-- Debug Time Travel (Visual Simulator) -->
+      <div class="time-travel-tool" title="Simulate passing of time to see memory decay!">
+        <span class="tool-label">⏳ Simulator:</span>
+        <button id="btn-time-travel-1" class="btn btn-sm btn-secondary">+1 Day</button>
+        <button id="btn-time-travel-5" class="btn btn-sm btn-secondary">+5 Days</button>
+        <button id="btn-time-travel-reset" class="btn btn-sm btn-secondary btn-danger">Reset Time</button>
+        <span id="offset-display" class="offset-badge" style="display: none;">+0d</span>
+      </div>
+    </header>
+
+    <!-- Kid Board Switcher -->
+    <section class="kid-switcher-section">
+      <h2 class="section-title">Kids' Learning Boards 👧👦👶</h2>
+      <div class="kid-tabs" id="kid-selector-container">
+        <!-- Rendered dynamically in app.js -->
+      </div>
+    </section>
+
+    <!-- Main Board Content -->
+    <main class="board-content" id="main-board">
+      
+      <!-- Kid Summary Header (Stats) -->
+      <section class="kid-stats-card" id="kid-summary-card">
+        <!-- Rendered dynamically -->
+      </section>
+
+      <!-- TOP-LEVEL SUBJECT OVERVIEW ACCORDION (Weakest Subject First) -->
+      <section class="subject-overview-section">
+        <div class="section-header-row">
+          <h2 class="section-title">Subject Summary 📊 <span class="subtitle">(Weakest on top!)</span></h2>
+        </div>
+        <div class="accordion-container" id="subject-accordion-dashboard">
+          <!-- Rendered dynamically: Accordions for each subject -->
+        </div>
+      </section>
+
+      <!-- NAVIGATION TABS -->
+      <nav class="navigation-tabs">
+        <button class="nav-tab active" data-tab="tab-journal">📖 Journal</button>
+        <button class="nav-tab" data-tab="tab-quizzes">📅 Quizzes <span class="badge" id="quiz-count-badge">0</span></button>
+        <button class="nav-tab" data-tab="tab-subjects">🎨 Edit Subjects</button>
+        <button class="nav-tab" data-tab="tab-log">📜 Activity Log</button>
+      </nav>
+
+      <!-- TAB CONTENTS -->
+      <div class="tab-panes-container">
+        
+        <!-- Tab 1: Bullet Journal Entries -->
+        <div class="tab-pane active" id="tab-journal">
+          <div class="pane-header">
+            <h3>Daily Lessons Journal</h3>
+            <button class="btn btn-primary btn-round" id="btn-open-add-lesson">＋ Add Daily Lesson 📚</button>
+          </div>
+
+          <!-- Subject Filter Pills -->
+          <div class="filter-pills-container" id="journal-subject-filter">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div class="lessons-journal-grid" id="lessons-container">
+            <!-- Rendered dynamically: List of lessons -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Quizzes & Tests -->
+        <div class="tab-pane" id="tab-quizzes">
+          <div class="pane-header">
+            <h3>Upcoming Tests & Quizzes</h3>
+            <button class="btn btn-primary btn-round" id="btn-open-add-quiz">＋ Schedule Quiz 📅</button>
+          </div>
+
+          <div class="quizzes-grid" id="quizzes-container">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Master Subjects List -->
+        <div class="tab-pane" id="tab-subjects">
+          <div class="pane-header">
+            <h3>Master Subjects List</h3>
+          </div>
+          
+          <div class="subjects-management-layout">
+            <!-- Form to Add Subject -->
+            <form id="add-subject-form" class="card form-card">
+              <h4>Add New Master Subject</h4>
+              <div class="form-group">
+                <label for="new-subject-name">Subject Name</label>
+                <input type="text" id="new-subject-name" placeholder="e.g. Geography, Hindi, Maths" required>
+              </div>
+              <div class="form-group">
+                <label for="new-subject-emoji">Subject Emoji</label>
+                <input type="text" id="new-subject-emoji" placeholder="e.g. 📐, 🌍, 📙, 🔬" required>
+              </div>
+              <div class="form-group">
+                <label for="new-subject-color">Theme Color</label>
+                <div class="color-picker-grid">
+                  <label class="color-swatch" style="background-color: #ff6b6b;"><input type="radio" name="subj-color" value="#ff6b6b" checked></label>
+                  <label class="color-swatch" style="background-color: #ff9f43;"><input type="radio" name="subj-color" value="#ff9f43"></label>
+                  <label class="color-swatch" style="background-color: #feca57;"><input type="radio" name="subj-color" value="#feca57"></label>
+                  <label class="color-swatch" style="background-color: #1dd1a1;"><input type="radio" name="subj-color" value="#1dd1a1"></label>
+                  <label class="color-swatch" style="background-color: #48dbfb;"><input type="radio" name="subj-color" value="#48dbfb"></label>
+                  <label class="color-swatch" style="background-color: #54a0ff;"><input type="radio" name="subj-color" value="#54a0ff"></label>
+                  <label class="color-swatch" style="background-color: #5f27cd;"><input type="radio" name="subj-color" value="#5f27cd"></label>
+                  <label class="color-swatch" style="background-color: #ff9ff3;"><input type="radio" name="subj-color" value="#ff9ff3"></label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Add Subject 🎨</button>
+            </form>
+
+            <!-- Active Subjects List -->
+            <div class="card subjects-list-card">
+              <h4>Active Subjects</h4>
+              <p class="card-hint">Removing a subject will remove it from the master selection list.</p>
+              <div class="subjects-list" id="master-subjects-list">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Activity Log -->
+        <div class="tab-pane" id="tab-log">
+          <div class="pane-header">
+            <h3>Kid's Activity Log</h3>
+            <button class="btn btn-secondary btn-sm" id="btn-clear-logs">Clear Log</button>
+          </div>
+          <div class="card log-card">
+            <div class="log-timeline" id="log-timeline-container">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- MODAL: ADD DAILY LESSON -->
+    <div class="modal-backdrop" id="modal-add-lesson">
+      <div class="modal-content card">
+        <div class="modal-header">
+          <h3>＋ Add Daily Lesson</h3>
+          <button class="btn-close-modal">&times;</button>
+        </div>
+        <form id="add-lesson-form">
+          <div class="form-group">
+            <label for="lesson-subject">Subject</label>
+            <select id="lesson-subject" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="lesson-topic">What was taught today? (Topic/Lesson)</label>
+            <input type="text" id="lesson-topic" placeholder="e.g. Volcanoes & Earthquakes, Fractions, Vilom Shabd" required>
+          </div>
+          <div class="form-group">
+            <label>Sub-sections (Learning Areas)</label>
+            <p class="form-hint">Add the specific areas taught (e.g. Meanings, Map Marking, Formulas). Initial rating will be 0/10.</p>
+            <div class="dynamic-inputs-container" id="lesson-subsections-list">
+              <div class="subsection-input-row">
+                <input type="text" class="subsection-name-input" placeholder="e.g. Meanings" required value="Meanings">
+                <button type="button" class="btn-remove-row" style="display:none;">&times;</button>
+              </div>
+              <div class="subsection-input-row">
+                <input type="text" class="subsection-name-input" placeholder="e.g. Question & Answers" required value="Question & Answers">
+                <button type="button" class="btn-remove-row" style="display:none;">&times;</button>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm btn-round-sm" style="margin-top: 8px;" id="btn-add-subsection-field">＋ Add Sub-section</button>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add Lesson 📚</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: ADD QUIZ -->
+    <div class="modal-backdrop" id="modal-add-quiz">
+      <div class="modal-content card">
+        <div class="modal-header">
+          <h3>＋ Schedule Quiz/Test</h3>
+          <button class="btn-close-modal">&times;</button>
+        </div>
+        <form id="add-quiz-form">
+          <div class="form-group">
+            <label for="quiz-subject">Subject</label>
+            <select id="quiz-subject" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="quiz-topic">Quiz Topic / Description</label>
+            <input type="text" id="quiz-topic" placeholder="e.g. Chapter 3: Fractions, Map of Asia" required>
+          </div>
+          <div class="form-group">
+            <label for="quiz-date">Exam Date</label>
+            <input type="date" id="quiz-date" required>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Schedule Quiz 📅</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: UPDATE PROFICIENCY RATINGS -->
+    <div class="modal-backdrop" id="modal-update-ratings">
+      <div class="modal-content card">
+        <div class="modal-header">
+          <div class="title-meta">
+            <span class="subject-badge-pill" id="rating-modal-subject">Maths</span>
+            <h3 id="rating-modal-lesson-title">Lesson Title</h3>
+          </div>
+          <button class="btn-close-modal">&times;</button>
+        </div>
+        <form id="update-ratings-form">
+          <input type="hidden" id="rating-modal-lesson-id">
+          
+          <div class="rating-sliders-container" id="rating-sliders-list">
+            <!-- Populated dynamically with sliders per sub-section -->
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Update Ratings 🎯</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- PWA Offline Install Toast Notification -->
+    <div class="pwa-toast" id="pwa-install-toast">
+      <div class="toast-content">
+        <span class="toast-icon">📱</span>
+        <div class="toast-text">
+          <strong>Install TopRank</strong>
+          <span>Add to your home screen for quick access!</span>
+        </div>
+      </div>
+      <div class="toast-actions">
+        <button class="btn btn-primary btn-sm" id="btn-pwa-install">Install</button>
+        <button class="btn-close-toast" id="btn-pwa-close">&times;</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 TopRank Learning Tracker. Handcrafted for Rahel, Elsa, & Eliah 💖</p>
+    </footer>
+
+  </div>
+
+  <!-- JavaScript logic -->
+  <script src="app.js"></script>
+</body>
+</html>
