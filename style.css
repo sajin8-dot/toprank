@@ -66,6 +66,12 @@ body {
   padding-bottom: 80px; /* space for sticky footer/nav */
 }
 
+.board-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
 /* --- Common Components (Buttons, Cards) --- */
 .card {
   background: transparent;
@@ -207,6 +213,23 @@ h1, h2, h3, h4 {
   border-radius: var(--radius-md);
   padding: 16px 20px;
   box-shadow: var(--shadow-sm);
+}
+
+.profile-dropdown {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  background-color: var(--paper-white);
+  color: var(--text-dark);
+  border: 1.5px solid var(--border-light);
+  cursor: pointer;
+  font-weight: 600;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.profile-dropdown:focus {
+  border-color: var(--brand-pink);
 }
 
 .logo-area {
@@ -1409,6 +1432,22 @@ body.dark .filter-pill.active {
   background-color: #f5f6fa;
   color: #1e272e;
   border-color: #f5f6fa;
+}
+
+body.dark .kid-stats-card {
+  background: linear-gradient(135deg, #1e1e1e, #181818);
+  border-color: var(--border-light);
+}
+
+body.dark .profile-dropdown {
+  background-color: #1e272e;
+  color: #f5f6fa;
+  border-color: #718093;
+}
+
+body.dark .time-travel-tool {
+  background-color: #2b1d22;
+  border-color: #ff4d6d;
 }
 
 /* --- Quiz Calendar Styles --- */
