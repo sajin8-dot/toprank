@@ -42,6 +42,9 @@
           </select>
         </div>
 
+        <!-- Theme Toggle -->
+        <button id="btn-theme-toggle" class="btn btn-secondary btn-sm btn-round-sm btn-icon-only" title="Toggle Dark/Light Mode" style="font-size: 0.95rem;">🌙</button>
+
         <!-- Debug Time Travel (Visual Simulator) -->
         <div class="time-travel-tool" title="Simulate passing of time to see memory decay!" style="padding: 4px 8px;">
           <button id="btn-time-travel-1" class="btn btn-sm btn-secondary" title="+1 Day">⏳ +1d</button>
@@ -88,6 +91,11 @@
             <button class="btn btn-primary btn-round" id="btn-open-add-lesson">＋ Add Daily Lesson</button>
           </div>
 
+          <!-- Search input -->
+          <div class="search-container" style="margin-bottom: 12px; display: flex; width: 100%;">
+            <input type="text" id="journal-search" placeholder="🔍 Search topics or learning areas..." style="width: 100%; padding: 8px 12px; font-size: 0.9rem; border-radius: 8px; border: 1px solid var(--border-light); background: var(--bg-cream); font-family: var(--font-body);">
+          </div>
+
           <!-- Subject Filter Pills -->
           <div class="filter-pills-container" id="journal-subject-filter">
             <!-- Rendered dynamically -->
@@ -102,10 +110,16 @@
         <div class="tab-pane" id="tab-quizzes">
           <div class="pane-header">
             <h3>Upcoming Tests & Quizzes</h3>
-            <button class="btn btn-primary btn-round" id="btn-open-add-quiz">＋ Schedule Quiz</button>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-sm btn-round-sm" id="btn-quiz-view-toggle">📅 Calendar View</button>
+              <button class="btn btn-primary btn-round" id="btn-open-add-quiz">＋ Schedule Quiz</button>
+            </div>
           </div>
 
           <div class="quizzes-grid" id="quizzes-container">
+            <!-- Rendered dynamically -->
+          </div>
+          <div id="quizzes-calendar-container" style="display: none;">
             <!-- Rendered dynamically -->
           </div>
         </div>
@@ -119,12 +133,19 @@
           <div class="subjects-management-layout">
             <!-- Form to Add/Edit Subject -->
             <form id="add-subject-form" class="card form-card">
-              <h4 id="subject-form-title">Add New Master Subject</h4>
+              <h4 id="subject-form-title">Add New Subject</h4>
               <div class="form-group">
                 <label for="new-subject-name">Subject Name</label>
                 <input type="text" id="new-subject-name" placeholder="e.g. Geography, Hindi, Maths" required>
               </div>
-
+              <div class="form-group">
+                <label for="new-subject-decay">Daily Decay Rate</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <input type="range" id="new-subject-decay" min="0.1" max="2.0" step="0.1" value="0.5" style="flex: 1;">
+                  <span id="decay-rate-bubble" style="font-weight: bold; min-width: 30px; font-family: var(--font-header);">0.5</span>
+                </div>
+                <p class="form-hint">Points this subject loses per day since last review (default: 0.5).</p>
+              </div>
               <div class="form-group">
                 <label for="new-subject-color">Theme Color</label>
                 <div class="color-picker-grid">
@@ -258,6 +279,9 @@
           
           <div class="rating-sliders-container" id="rating-sliders-list">
             <!-- Populated dynamically with sliders per sub-section -->
+          </div>
+          <div class="modal-sub-actions" style="margin-top: 14px; display: flex; justify-content: flex-start;">
+            <button type="button" class="btn btn-secondary btn-sm btn-round-sm" id="btn-modal-add-subsection">＋ Add Learning Area</button>
           </div>
           
           <div class="modal-actions">

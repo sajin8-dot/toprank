@@ -15,12 +15,12 @@ const DEFAULT_STATE = {
   ],
   currentKidId: "kid-rahel",
   subjects: [
-    { name: "Maths", color: "#54a0ff" },
-    { name: "Hindi", color: "#ff9f43" },
-    { name: "Geography", color: "#1dd1a1" },
-    { name: "Science", color: "#5f27cd" },
-    { name: "History", color: "#ff6b6b" },
-    { name: "English", color: "#ff9ff3" }
+    { name: "Maths", color: "#54a0ff", decayRate: 0.5 },
+    { name: "Hindi", color: "#ff9f43", decayRate: 0.5 },
+    { name: "Geography", color: "#1dd1a1", decayRate: 0.5 },
+    { name: "Science", color: "#5f27cd", decayRate: 0.5 },
+    { name: "History", color: "#ff6b6b", decayRate: 0.5 },
+    { name: "English", color: "#ff9ff3", decayRate: 0.5 }
   ],
   lessons: [
     // Rahel's Lessons
@@ -112,7 +112,9 @@ const DEFAULT_STATE = {
     
     { id: "log-5", kidId: "kid-aaliyah", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "📚 Lesson 'Addition & Regrouping' added to Maths with 2 sub-sections." }
   ],
-  dateOffset: 0 // Days added dynamically for simulation
+  dateOffset: 0, // Days added dynamically for simulation
+  theme: "light",
+  quizView: "list"
 };
 
 // --- App State ---
@@ -166,26 +168,42 @@ function loadState() {
           }
         });
       }
-      // Strip subject emojis from loaded subjects
+      // Strip subject emojis from loaded subjects and set default decay rate
       if (state.subjects) {
         state.subjects.forEach(s => {
           if (s.emoji) {
             delete s.emoji;
             migrated = true;
           }
+          if (typeof s.decayRate === 'undefined') {
+            s.decayRate = 0.5;
+            migrated = true;
+          }
         });
+      }
+      if (typeof state.theme === 'undefined') {
+        state.theme = 'light';
+        migrated = true;
+      }
+      if (typeof state.quizView === 'undefined') {
+        state.quizView = 'list';
+        migrated = true;
       }
       if (migrated) {
         saveState();
       }
+      applyTheme();
     } catch (e) {
       console.error("Error parsing localStorage state, resetting...", e);
       state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      saveState();
+      applyTheme();
     }
   } else {
     // Fresh seed
     state = JSON.parse(JSON.stringify(DEFAULT_STATE));
     saveState();
+    applyTheme();
   }
 }
 
@@ -232,12 +250,15 @@ function getDaysElapsed(pastDateIsoString) {
 // --- Memory Decay & Score Formulas ---
 
 // Calculate decayed rating for a subsection
-// Base rating decays linear-style by 0.5 per day since lastUpdatedDate
-function getDecayedRating(baseRating, lastUpdatedDate) {
+// Base rating decays linear-style by subject's decay rate per day since lastUpdatedDate
+function getDecayedRating(subjectName, baseRating, lastUpdatedDate) {
   if (baseRating === 0) return 0; // Starts at 0, no decay since it hasn't been learned/rated
   
+  const subjConfig = getSubjectConfig(subjectName);
+  const decayRate = typeof subjConfig.decayRate !== 'undefined' ? subjConfig.decayRate : DECAY_RATE;
+  
   const days = getDaysElapsed(lastUpdatedDate);
-  const decayed = baseRating - (days * DECAY_RATE);
+  const decayed = baseRating - (days * decayRate);
   return Math.max(0, parseFloat(decayed.toFixed(2)));
 }
 
@@ -245,7 +266,7 @@ function getDecayedRating(baseRating, lastUpdatedDate) {
 function getLessonRating(lesson) {
   if (!lesson.subSections || lesson.subSections.length === 0) return 0;
   const sum = lesson.subSections.reduce((acc, sub) => {
-    return acc + getDecayedRating(sub.baseRating, sub.lastUpdatedDate);
+    return acc + getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate);
   }, 0);
   return parseFloat((sum / lesson.subSections.length).toFixed(2));
 }
@@ -613,10 +634,21 @@ function renderJournal() {
     elJournalSubjectFilter.appendChild(pill);
   });
 
-  // Filter lessons
+  // Filter lessons by subject
   let filteredLessons = kidLessons;
   if (currentJournalFilter !== "All") {
     filteredLessons = kidLessons.filter(l => l.subjectName === currentJournalFilter);
+  }
+
+  // Filter lessons by search query
+  const elSearch = document.getElementById('journal-search');
+  const searchQuery = elSearch ? elSearch.value.trim().toLowerCase() : '';
+  if (searchQuery) {
+    filteredLessons = filteredLessons.filter(l => {
+      const matchTopic = l.topicName.toLowerCase().includes(searchQuery);
+      const matchSub = l.subSections.some(sub => sub.name.toLowerCase().includes(searchQuery));
+      return matchTopic || matchSub;
+    });
   }
 
   // SORT lessons: Least prepared (lowest rating) first
@@ -656,7 +688,7 @@ function renderJournal() {
     // Build sub-sections list html
     let subSectionsHtml = '';
     lesson.subSections.forEach(sub => {
-      const decayedRating = getDecayedRating(sub.baseRating, sub.lastUpdatedDate);
+      const decayedRating = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate);
       const elapsedDays = getDaysElapsed(sub.lastUpdatedDate);
       const subBadgeClass = getScoreBadgeClass(decayedRating);
       
@@ -671,14 +703,15 @@ function renderJournal() {
       }
 
       subSectionsHtml += `
-        <div class="subsection-item-row">
+        <div class="subsection-item-row" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; margin-bottom: 4px;">
           <div class="subsection-label">
             <span>🔹 ${sub.name}</span>
             ${decayInfoHtml}
           </div>
-          <div class="subsection-rating-box">
+          <div class="subsection-rating-box" style="display: flex; align-items: center; gap: 8px;">
             <span class="rating-gauge-mini ${subBadgeClass}"></span>
             <span class="subsection-score-text">${decayedRating.toFixed(1)}/10</span>
+            <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-quick-bump" data-lesson-id="${lesson.id}" data-sub-name="${sub.name}" title="Quick Review (Practice +1)" style="width: 24px; height: 24px; font-size: 0.75rem;">＋</button>
           </div>
         </div>
       `;
@@ -731,6 +764,16 @@ function renderJournal() {
       }
     });
 
+    // Hook quick bump buttons
+    card.querySelectorAll('.btn-quick-bump').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const lessonId = btn.getAttribute('data-lesson-id');
+        const subName = btn.getAttribute('data-sub-name');
+        quickBumpRating(lessonId, subName);
+      });
+    });
+
     elLessonsContainer.appendChild(card);
   });
 }
@@ -751,6 +794,22 @@ function calculateDaysToGo(quizDateStr) {
 
 // 5. Render Quizzes
 function renderQuizzes() {
+  const elListContainer = document.getElementById('quizzes-container');
+  const elCalendarContainer = document.getElementById('quizzes-calendar-container');
+  const btnToggle = document.getElementById('btn-quiz-view-toggle');
+  
+  if (state.quizView === 'calendar') {
+    elListContainer.style.display = 'none';
+    elCalendarContainer.style.display = 'block';
+    if (btnToggle) btnToggle.textContent = '📋 List View';
+    renderQuizCalendar(elCalendarContainer);
+    return;
+  }
+  
+  elListContainer.style.display = 'grid';
+  elCalendarContainer.style.display = 'none';
+  if (btnToggle) btnToggle.textContent = '📅 Calendar View';
+  
   elQuizzesContainer.innerHTML = '';
   
   const kid = state.kids.find(k => k.id === state.currentKidId);
@@ -826,6 +885,111 @@ function renderQuizzes() {
 
     elQuizzesContainer.appendChild(card);
   });
+}
+
+// Render Monthly Quiz Calendar
+function renderQuizCalendar(container) {
+  if (typeof window.calendarMonth === 'undefined') {
+    const simDate = getSimulatedDate();
+    window.calendarMonth = simDate.getMonth();
+    window.calendarYear = simDate.getFullYear();
+  }
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  
+  container.innerHTML = `
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <button class="btn btn-secondary btn-sm btn-icon-only" id="btn-cal-prev" style="width:28px; height:28px;">&lt;</button>
+        <h4 style="margin: 0;">${monthNames[window.calendarMonth]} ${window.calendarYear}</h4>
+        <button class="btn btn-secondary btn-sm btn-icon-only" id="btn-cal-next" style="width:28px; height:28px;">&gt;</button>
+      </div>
+      <div class="calendar-grid">
+        <div class="calendar-day-header">Sun</div>
+        <div class="calendar-day-header">Mon</div>
+        <div class="calendar-day-header">Tue</div>
+        <div class="calendar-day-header">Wed</div>
+        <div class="calendar-day-header">Thu</div>
+        <div class="calendar-day-header">Fri</div>
+        <div class="calendar-day-header">Sat</div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-cal-prev').addEventListener('click', () => {
+    window.calendarMonth--;
+    if (window.calendarMonth < 0) {
+      window.calendarMonth = 11;
+      window.calendarYear--;
+    }
+    renderQuizzes();
+  });
+  
+  document.getElementById('btn-cal-next').addEventListener('click', () => {
+    window.calendarMonth++;
+    if (window.calendarMonth > 11) {
+      window.calendarMonth = 0;
+      window.calendarYear++;
+    }
+    renderQuizzes();
+  });
+
+  const grid = container.querySelector('.calendar-grid');
+  const firstDay = new Date(window.calendarYear, window.calendarMonth, 1).getDay();
+  const totalDays = new Date(window.calendarYear, window.calendarMonth + 1, 0).getDate();
+
+  // Empty cells
+  for (let i = 0; i < firstDay; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day empty';
+    grid.appendChild(cell);
+  }
+
+  const kid = state.kids.find(k => k.id === state.currentKidId);
+  const kidQuizzes = state.quizzes.filter(q => q.kidId === kid.id);
+  const simToday = getSimulatedDate();
+
+  // Days cells
+  for (let day = 1; day <= totalDays; day++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day';
+
+    if (day === simToday.getDate() && window.calendarMonth === simToday.getMonth() && window.calendarYear === simToday.getFullYear()) {
+      cell.classList.add('today');
+    }
+
+    cell.innerHTML = `<span class="calendar-day-number">${day}</span>`;
+
+    const cellDateStr = `${window.calendarYear}-${String(window.calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dayQuizzes = kidQuizzes.filter(q => q.date === cellDateStr);
+
+    if (dayQuizzes.length > 0) {
+      const dotsContainer = document.createElement('div');
+      dotsContainer.className = 'calendar-dots-container';
+
+      dayQuizzes.forEach(quiz => {
+        const subjConfig = getSubjectConfig(quiz.subjectName);
+        const dot = document.createElement('span');
+        dot.className = 'quiz-dot';
+        dot.style.backgroundColor = subjConfig.color;
+        dot.title = `${quiz.subjectName}: ${quiz.topicName}`;
+
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm(`Scheduled Quiz details:\nSubject: ${quiz.subjectName}\nTopic: ${quiz.topicName}\nDate: ${quiz.date}\n\nDo you want to delete this quiz?`)) {
+            deleteQuiz(quiz.id);
+          }
+        });
+        dotsContainer.appendChild(dot);
+      });
+      cell.appendChild(dotsContainer);
+    }
+
+    grid.appendChild(cell);
+  }
 }
 
 // 6. Render Master Subjects editor
@@ -982,15 +1146,39 @@ function deleteQuiz(quizId) {
   renderAll();
 }
 
+// Quick Bump Rating (Practice +1)
+function quickBumpRating(lessonId, subName) {
+  const lesson = state.lessons.find(l => l.id === lessonId);
+  if (!lesson) return;
+  const sub = lesson.subSections.find(s => s.name === subName);
+  if (!sub) return;
+
+  const decayedVal = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate);
+  const newVal = Math.min(10, Math.floor(decayedVal) + 1);
+  const oldDecayed = decayedVal;
+
+  sub.baseRating = newVal;
+  sub.lastUpdatedDate = new Date().toISOString();
+
+  logActivity(
+    state.currentKidId,
+    "rating",
+    `🎯 Practiced (Quick-Bump) '${sub.name}' in '${lesson.topicName}' (${lesson.subjectName}): boosted rating to ${newVal}/10 (was decayed at ${oldDecayed.toFixed(1)}/10).`
+  );
+
+  saveState();
+  renderAll();
+}
+
 // Add Master Subject
-function addSubject(name, color) {
+function addSubject(name, color, decayRate) {
   // Check if exists
   if (state.subjects.some(s => s.name.toLowerCase() === name.toLowerCase())) {
     alert("Subject already exists!");
     return;
   }
 
-  state.subjects.push({ name, color });
+  state.subjects.push({ name, color, decayRate: decayRate || 0.5 });
   logActivity(state.currentKidId, "subject", `🎨 Master list updated: Subject '${name}' added.`);
   saveState();
   renderMasterSubjects();
@@ -1025,12 +1213,13 @@ function openUpdateRatingsModal(lessonId) {
   slidersList.innerHTML = '';
 
   lesson.subSections.forEach((sub, index) => {
-    const decayedVal = getDecayedRating(sub.baseRating, sub.lastUpdatedDate);
+    const decayedVal = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate);
     const days = getDaysElapsed(sub.lastUpdatedDate);
     const badgeClass = getScoreBadgeClass(decayedVal);
     
     const sliderRow = document.createElement('div');
     sliderRow.className = 'rating-slider-row';
+    sliderRow.setAttribute('data-original-name', sub.name);
     
     let decaySubtitle = '';
     if (sub.baseRating === 0) {
@@ -1040,15 +1229,21 @@ function openUpdateRatingsModal(lessonId) {
     }
 
     sliderRow.innerHTML = `
-      <div class="rating-slider-meta">
-        <span class="rating-slider-name">🔹 ${sub.name}</span>
-        <span class="rating-slider-decay-info">${decaySubtitle}</span>
+      <div class="rating-slider-meta" style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <input type="text" class="rating-slider-name-input" value="${sub.name}" placeholder="Subsection Name" required style="flex: 1; padding: 4px 8px; font-size: 0.85rem; font-weight: 600;">
+        <button type="button" class="btn btn-danger btn-sm btn-icon-only btn-modal-delete-sub" title="Delete Subsection" style="width: 24px; height: 24px;">🗑️</button>
       </div>
+      <div class="rating-slider-decay-info" style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; margin-bottom: 6px;">${decaySubtitle}</div>
       <div class="slider-input-group">
-        <input type="range" class="rating-slider-input" data-index="${index}" min="0" max="10" step="1" value="${Math.round(decayedVal)}">
+        <input type="range" class="rating-slider-input" min="0" max="10" step="1" value="${Math.round(decayedVal)}">
         <span class="slider-bubble-val ${badgeClass}">${Math.round(decayedVal)}</span>
       </div>
     `;
+
+    // Hook delete button click
+    sliderRow.querySelector('.btn-modal-delete-sub').addEventListener('click', () => {
+      sliderRow.remove();
+    });
 
     // Dynamic slider value rendering on slide
     const slider = sliderRow.querySelector('.rating-slider-input');
@@ -1057,10 +1252,7 @@ function openUpdateRatingsModal(lessonId) {
     slider.addEventListener('input', () => {
       const val = parseInt(slider.value);
       bubble.textContent = val;
-      
-      // Update color class dynamically
-      bubble.className = 'slider-bubble-val';
-      bubble.classList.add(getScoreBadgeClass(val));
+      bubble.className = 'slider-bubble-val ' + getScoreBadgeClass(val);
     });
 
     slidersList.appendChild(sliderRow);
@@ -1183,7 +1375,7 @@ formAddQuiz.addEventListener('submit', (e) => {
   renderAll();
 });
 
-// Form Submission: Update Ratings (Sliders)
+// Form Submission: Update Ratings (Sliders & Subsection Structural Edits)
 formUpdateRatings.addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -1191,27 +1383,54 @@ formUpdateRatings.addEventListener('submit', (e) => {
   const lesson = state.lessons.find(l => l.id === lessonId);
   if (!lesson) return;
 
-  const sliderInputs = formUpdateRatings.querySelectorAll('.rating-slider-input');
-  
-  sliderInputs.forEach(slider => {
-    const idx = parseInt(slider.getAttribute('data-index'));
-    const newVal = parseInt(slider.value);
-    const sub = lesson.subSections[idx];
-    
-    const oldDecayed = getDecayedRating(sub.baseRating, sub.lastUpdatedDate);
+  const sliderRows = document.getElementById('rating-sliders-list').querySelectorAll('.rating-slider-row');
+  const newSubSections = [];
 
-    // Update if changed, or if user commits it (which resets decay timer to today)
-    // We update baseRating to newVal and lastUpdatedDate to today (current physical time)
-    sub.baseRating = newVal;
-    sub.lastUpdatedDate = new Date().toISOString();
+  sliderRows.forEach(row => {
+    const originalName = row.getAttribute('data-original-name');
+    const inputName = row.querySelector('.rating-slider-name-input').value.trim();
+    const inputVal = parseInt(row.querySelector('.rating-slider-input').value);
 
-    logActivity(
-      state.currentKidId, 
-      "rating", 
-      `🎯 Updated '${sub.name}' in '${lesson.topicName}' (${lesson.subjectName}) to ${newVal}/10 (was ${oldDecayed.toFixed(1)}/10).`
-    );
+    if (inputName === '') return;
+
+    // Check if it matched an old subsection
+    const oldSub = lesson.subSections.find(s => s.name === originalName);
+
+    if (oldSub) {
+      const oldDecayed = getDecayedRating(lesson.subjectName, oldSub.baseRating, oldSub.lastUpdatedDate);
+      // If rating value is different, or if name changed, update
+      if (Math.round(oldDecayed) !== inputVal || oldSub.name !== inputName) {
+        oldSub.baseRating = inputVal;
+        oldSub.lastUpdatedDate = new Date().toISOString();
+        logActivity(
+          state.currentKidId, 
+          "rating", 
+          `🎯 Updated '${inputName}' in '${lesson.topicName}' (${lesson.subjectName}) to ${inputVal}/10 (was ${oldDecayed.toFixed(1)}/10).`
+        );
+      }
+      oldSub.name = inputName; // apply name change
+      newSubSections.push(oldSub);
+    } else {
+      // New subsection added
+      newSubSections.push({
+        name: inputName,
+        baseRating: inputVal,
+        lastUpdatedDate: new Date().toISOString()
+      });
+      logActivity(
+        state.currentKidId, 
+        "rating", 
+        `＋ Added subsection '${inputName}' to '${lesson.topicName}' (${lesson.subjectName}) with rating ${inputVal}/10.`
+      );
+    }
   });
 
+  if (newSubSections.length === 0) {
+    alert("Please keep at least one sub-section!");
+    return;
+  }
+
+  lesson.subSections = newSubSections;
   saveState();
   closeModal(modalUpdateRatings);
   renderAll();
@@ -1224,14 +1443,16 @@ formAddSubject.addEventListener('submit', (e) => {
   const name = document.getElementById('new-subject-name').value.trim();
   const colorRadio = formAddSubject.querySelector('input[name="subj-color"]:checked');
   const color = colorRadio ? colorRadio.value : '#ff6b6b';
+  const decayRate = parseFloat(document.getElementById('new-subject-decay').value);
 
   if (editingSubjectName) {
     // Edit mode
     const subj = state.subjects.find(s => s.name === editingSubjectName);
     if (subj) {
       subj.color = color;
+      subj.decayRate = decayRate;
       
-      logActivity(state.currentKidId, "subject", `🎨 Subject '${editingSubjectName}' updated (Color: ${color}).`);
+      logActivity(state.currentKidId, "subject", `🎨 Subject '${editingSubjectName}' updated (Color: ${color}, Decay Rate: ${decayRate}).`);
       
       saveState();
       cancelEditSubject();
@@ -1239,9 +1460,10 @@ formAddSubject.addEventListener('submit', (e) => {
     }
   } else {
     // Add mode
-    addSubject(name, color);
+    addSubject(name, color, decayRate);
     formAddSubject.reset();
     if (colorRadio) colorRadio.checked = true;
+    document.getElementById('decay-rate-bubble').textContent = '0.5';
     renderAll();
   }
 });
@@ -1362,6 +1584,90 @@ loadState();
 renderAll();
 populateSubjectDropdowns();
 
+// Theme Toggle Event Listener
+const btnThemeToggle = document.getElementById('btn-theme-toggle');
+if (btnThemeToggle) {
+  btnThemeToggle.addEventListener('click', () => {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    saveState();
+    applyTheme();
+  });
+}
+
+function applyTheme() {
+  const btnToggle = document.getElementById('btn-theme-toggle');
+  if (state.theme === 'dark') {
+    document.body.classList.add('dark');
+    if (btnToggle) btnToggle.textContent = '☀️';
+  } else {
+    document.body.classList.remove('dark');
+    if (btnToggle) btnToggle.textContent = '🌙';
+  }
+}
+
+// Journal Search Event Listener
+const elJournalSearch = document.getElementById('journal-search');
+if (elJournalSearch) {
+  elJournalSearch.addEventListener('input', () => {
+    renderJournal();
+  });
+}
+
+// Quiz View Toggle Event Listener
+const btnQuizViewToggle = document.getElementById('btn-quiz-view-toggle');
+if (btnQuizViewToggle) {
+  btnQuizViewToggle.addEventListener('click', () => {
+    state.quizView = state.quizView === 'calendar' ? 'list' : 'calendar';
+    saveState();
+    renderQuizzes();
+  });
+}
+
+// Subject Decay Bubble Updater
+const elNewSubjectDecay = document.getElementById('new-subject-decay');
+const elDecayRateBubble = document.getElementById('decay-rate-bubble');
+if (elNewSubjectDecay && elDecayRateBubble) {
+  elNewSubjectDecay.addEventListener('input', () => {
+    elDecayRateBubble.textContent = elNewSubjectDecay.value;
+  });
+}
+
+// Ratings Modal Add Subsection Event Listener
+document.getElementById('btn-modal-add-subsection').addEventListener('click', () => {
+  const slidersList = document.getElementById('rating-sliders-list');
+  const sliderRow = document.createElement('div');
+  sliderRow.className = 'rating-slider-row';
+  sliderRow.setAttribute('data-original-name', ''); // New subsection
+  
+  sliderRow.innerHTML = `
+    <div class="rating-slider-meta" style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+      <input type="text" class="rating-slider-name-input" value="" placeholder="New Learning Area..." required style="flex: 1; padding: 4px 8px; font-size: 0.85rem; font-weight: 600;">
+      <button type="button" class="btn btn-danger btn-sm btn-icon-only btn-modal-delete-sub" title="Delete Subsection" style="width: 24px; height: 24px;">🗑️</button>
+    </div>
+    <div class="rating-slider-decay-info" style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; margin-bottom: 6px;">New Subsection (Unrated)</div>
+    <div class="slider-input-group">
+      <input type="range" class="rating-slider-input" min="0" max="10" step="1" value="0">
+      <span class="slider-bubble-val weak">0</span>
+    </div>
+  `;
+
+  // Hook delete
+  sliderRow.querySelector('.btn-modal-delete-sub').addEventListener('click', () => {
+    sliderRow.remove();
+  });
+
+  // Hook input slider bubble
+  const slider = sliderRow.querySelector('.rating-slider-input');
+  const bubble = sliderRow.querySelector('.slider-bubble-val');
+  slider.addEventListener('input', () => {
+    const val = parseInt(slider.value);
+    bubble.textContent = val;
+    bubble.className = 'slider-bubble-val ' + getScoreBadgeClass(val);
+  });
+
+  slidersList.appendChild(sliderRow);
+});
+
 // --- TEST / VALIDATION HARNESS (Self-Testing Code) ---
 window.TopRankTest = {
   runTests: function() {
@@ -1370,18 +1676,18 @@ window.TopRankTest = {
     // Test 1: Decay calculation
     // Decay: 0.5 per day. Base rating 10. Elapsed: 4 days. Expected: 10 - 2 = 8
     const test1_date = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
-    const test1_rating = getDecayedRating(10, test1_date);
+    const test1_rating = getDecayedRating("Testing", 10, test1_date);
     const test1_passed = test1_rating === 8.0;
     console.log(`Test 1: Linear Decay - ${test1_passed ? 'PASSED ✅' : 'FAILED ❌'} (Expected 8.0, got ${test1_rating})`);
 
     // Test 2: Rating should not go below 0
     const test2_date = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const test2_rating = getDecayedRating(10, test2_date);
+    const test2_rating = getDecayedRating("Testing", 10, test2_date);
     const test2_passed = test2_rating === 0.0;
     console.log(`Test 2: Rating Clamp Min 0 - ${test2_passed ? 'PASSED ✅' : 'FAILED ❌'} (Expected 0.0, got ${test2_rating})`);
 
     // Test 3: Unrated starts at 0 and doesn't change
-    const test3_rating = getDecayedRating(0, test1_date);
+    const test3_rating = getDecayedRating("Testing", 0, test1_date);
     const test3_passed = test3_rating === 0;
     console.log(`Test 3: Unrated default zero - ${test3_passed ? 'PASSED ✅' : 'FAILED ❌'} (Expected 0, got ${test3_rating})`);
     

@@ -1342,3 +1342,163 @@ select:focus {
   aspect-ratio: 1 / 1;
 }
 
+/* --- Dark Mode Styles --- */
+body.dark {
+  --bg-cream: #1e272e;
+  --paper-white: #2f3640;
+  --text-dark: #f5f6fa;
+  --text-muted: #a4b0be;
+  --border-light: #718093;
+  --grid-dot-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark .app-header {
+  background: rgba(47, 54, 64, 0.85);
+  border-color: #3f444d;
+}
+
+body.dark input[type="text"],
+body.dark input[type="date"],
+body.dark select,
+body.dark input[type="range"] {
+  background-color: #1e272e;
+  color: #f5f6fa;
+  border-color: #718093;
+}
+
+body.dark .accordion-content,
+body.dark .modal-content {
+  background-color: #2f3640;
+  border-color: #718093;
+}
+
+body.dark .subsection-item-row,
+body.dark .rating-slider-row,
+body.dark .mini-item,
+body.dark .stat-box {
+  background-color: #1e272e;
+  border-color: #3f444d;
+}
+
+body.dark .btn-secondary {
+  background-color: #2f3640;
+  color: #f5f6fa;
+  border-color: #718093;
+}
+
+body.dark .btn-secondary:hover {
+  background-color: #353b48;
+}
+
+body.dark .filter-pill {
+  background-color: #2f3640;
+  color: #f5f6fa;
+  border-color: #718093;
+}
+
+body.dark .filter-pill.active {
+  background-color: #f5f6fa;
+  color: #1e272e;
+  border-color: #f5f6fa;
+}
+
+/* --- Quiz Calendar Styles --- */
+.calendar-container {
+  background: var(--paper-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.calendar-header h4 {
+  font-family: var(--font-header);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-weight: 700;
+  font-family: var(--font-header);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1 / 1;
+  background: var(--bg-cream);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: all var(--transition-fast);
+  min-height: 48px;
+}
+
+.calendar-day:hover {
+  border-color: var(--brand-pink);
+  transform: translateY(-1px);
+}
+
+.calendar-day.empty {
+  opacity: 0.3;
+  background: none;
+  border-color: transparent;
+  pointer-events: none;
+}
+
+.calendar-day.today {
+  border: 2px solid var(--brand-pink);
+  box-shadow: 0 0 0 2px rgba(255, 123, 144, 0.15);
+}
+
+.calendar-day-number {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--text-dark);
+  align-self: flex-start;
+}
+
+.calendar-dots-container {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-top: 2px;
+}
+
+.quiz-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.quiz-dot:hover {
+  transform: scale(1.3);
+}
+
+
