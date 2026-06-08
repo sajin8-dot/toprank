@@ -259,10 +259,10 @@ h1, h2, h3, h4 {
 
 /* Debug Simulator Style */
 .time-travel-tool {
-  background: var(--brand-pink-light);
-  border: 1px dashed var(--brand-pink);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -356,9 +356,9 @@ h1, h2, h3, h4 {
   gap: 16px;
   align-items: center;
   margin-bottom: 8px;
-  padding: 20px;
-  background: linear-gradient(135deg, #ffffff, #fafafa);
-  border: 2px solid var(--border-light);
+  padding: 20px 0;
+  background: transparent;
+  border: none;
 }
 
 @media (max-width: 600px) {
@@ -381,11 +381,11 @@ h1, h2, h3, h4 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--bg-cream);
-  border-radius: var(--radius-md);
-  padding: 12px;
+  background: transparent;
+  border-radius: 0;
+  padding: 12px 0;
   text-align: center;
-  border: 1px solid var(--border-light);
+  border: none;
 }
 
 .stat-val {
@@ -404,8 +404,8 @@ h1, h2, h3, h4 {
 }
 
 .stat-box.weakest {
-  background: #fff5f5;
-  border-color: #ffc9c9;
+  background: transparent;
+  border: none;
 }
 .stat-box.weakest .stat-val {
   color: var(--color-weak);
@@ -987,6 +987,7 @@ select:focus {
 }
 
 .color-swatch {
+  position: relative;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -1003,13 +1004,18 @@ select:focus {
 }
 
 .color-swatch input[type="radio"] {
+  position: absolute;
+  width: 0;
+  height: 0;
   opacity: 0;
-  cursor: pointer;
+  pointer-events: none;
+  margin: 0;
+  overflow: hidden;
 }
 
 .color-swatch:has(input[type="radio"]:checked) {
   border-color: var(--text-dark);
-  box-shadow: 0 0 0 2px #fff;
+  box-shadow: 0 0 0 2px var(--paper-white);
   transform: scale(1.1);
 }
 
@@ -1032,10 +1038,11 @@ select:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg-cream);
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-light);
+  background: transparent;
+  padding: 10px 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .subject-item-row .subj-details {
@@ -1406,10 +1413,16 @@ body.dark .modal-content {
 
 body.dark .subsection-item-row,
 body.dark .rating-slider-row,
-body.dark .mini-item,
-body.dark .stat-box {
+body.dark .mini-item {
   background-color: #1e272e;
   border-color: #3f444d;
+}
+
+body.dark .stat-box {
+  background-color: transparent;
+  border-color: transparent;
+  background: transparent;
+  border: none;
 }
 
 body.dark .btn-secondary {
@@ -1435,8 +1448,8 @@ body.dark .filter-pill.active {
 }
 
 body.dark .kid-stats-card {
-  background: linear-gradient(135deg, #1e1e1e, #181818);
-  border-color: var(--border-light);
+  background: transparent;
+  border: none;
 }
 
 body.dark .profile-dropdown {
@@ -1446,8 +1459,10 @@ body.dark .profile-dropdown {
 }
 
 body.dark .time-travel-tool {
-  background-color: #2b1d22;
-  border-color: #ff4d6d;
+  background-color: transparent;
+  border-color: transparent;
+  background: transparent;
+  border: none;
 }
 
 /* --- Quiz Calendar Styles --- */

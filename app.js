@@ -9,9 +9,9 @@ const LOCAL_STORAGE_KEY = 'toprank_state_v1';
 // --- Default Seed Data ---
 const DEFAULT_STATE = {
   kids: [
-    { id: "kid-rahel", name: "Rahel", age: 12, std: "Std 7", avatar: "🎒" },
-    { id: "kid-elsa", name: "Elsa", age: 9, std: "Std 4", avatar: "🎨" },
-    { id: "kid-eliah", name: "Eliah", age: 7, std: "Std 2", avatar: "🚀" }
+    { id: "kid-rahel", name: "Rahel", age: 12, std: "Std 7", avatar: "" },
+    { id: "kid-elsa", name: "Elsa", age: 9, std: "Std 4", avatar: "" },
+    { id: "kid-eliah", name: "Eliah", age: 7, std: "Std 2", avatar: "" }
   ],
   currentKidId: "kid-rahel",
   subjects: [
@@ -120,7 +120,7 @@ const DEFAULT_STATE = {
   ],
   logs: [
     { id: "log-1", kidId: "kid-rahel", timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "Lesson 'Linear Equations' added to Maths with 3 sub-sections." },
-    { id: "log-2", kidId: "kid-rahel", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "rating", message: "Updated 'Short Q&A Problems' in 'Linear Equations' (Maths) to 8/10." },
+    { id: "log-2", kidId: "kid-rahel", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "rating", message: "Learned Short Q&A Problems under Linear Equations proficiency increased to 8/10" },
     { id: "log-3", kidId: "kid-rahel", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "quiz", message: "Scheduled new quiz for 'Linear Equations Unit Test' in Maths on " + new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString() },
     
     { id: "log-4", kidId: "kid-elsa", timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "Lesson 'Map of India' added to Geography with 2 sub-sections." },
@@ -149,6 +149,10 @@ function loadState() {
       // Migrate kid-aaliyah to kid-eliah / Aaliyah to Eliah
       if (state.kids) {
         state.kids.forEach(k => {
+          if (k.avatar !== "") {
+            k.avatar = "";
+            migrated = true;
+          }
           if (k.id === "kid-aaliyah" || k.name === "Aaliyah") {
             k.id = "kid-eliah";
             k.name = "Eliah";
@@ -432,7 +436,7 @@ function renderKidSelector() {
     const isSelected = kid.id === state.currentKidId;
     const option = document.createElement('option');
     option.value = kid.id;
-    option.textContent = `${kid.avatar} ${kid.name} (${kid.std})`;
+    option.textContent = `${kid.name} (${kid.std})`;
     if (isSelected) {
       option.selected = true;
     }
@@ -475,7 +479,7 @@ function renderKidStats() {
 
   elKidSummary.innerHTML = `
     <div class="kid-summary-meta">
-      <h2>${kid.avatar} ${kid.name}'s Learning Board</h2>
+      <h2>${kid.name}'s Learning Board</h2>
       <p>Tracking school items for ${kid.std} • Overall Preparation Index: <strong>${overallRating}/10</strong></p>
     </div>
     <div class="stat-box">
@@ -707,7 +711,7 @@ function renderJournal() {
       <div class="card" style="text-align: center; padding: 40px 20px;">
         <h3 style="margin-top: 10px;">No journal entries yet</h3>
         <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 20px;">Add what was learned in school today to start tracking!</p>
-        <button class="btn btn-primary btn-round" id="btn-empty-add-lesson">＋ Add Daily Lesson</button>
+        <button class="btn btn-primary btn-round" id="btn-empty-add-lesson">＋ Add Lesson</button>
       </div>
     `;
     
@@ -1210,7 +1214,7 @@ function quickBumpRating(lessonId, subName) {
   logActivity(
     state.currentKidId,
     "rating",
-    `Practiced (Quick-Bump) '${sub.name}' in '${lesson.topicName}' (${lesson.subjectName}): boosted rating to ${newVal}/10 (was decayed at ${oldDecayed.toFixed(1)}/10).`
+    `Learned ${sub.name} under ${lesson.topicName} proficiency increased to ${newVal}/10`
   );
 
   saveState();
@@ -1452,7 +1456,7 @@ formUpdateRatings.addEventListener('submit', (e) => {
         logActivity(
           state.currentKidId, 
           "rating", 
-          `Updated '${inputName}' in '${lesson.topicName}' (${lesson.subjectName}) to ${inputVal}/10 (was ${oldDecayed.toFixed(1)}/10).`
+          `Learned ${inputName} under ${lesson.topicName} proficiency increased to ${inputVal}/10`
         );
       }
       oldSub.name = inputName; // apply name change
@@ -1467,7 +1471,7 @@ formUpdateRatings.addEventListener('submit', (e) => {
       logActivity(
         state.currentKidId, 
         "rating", 
-        `Added subsection '${inputName}' to '${lesson.topicName}' (${lesson.subjectName}) with rating ${inputVal}/10.`
+        `Learned ${inputName} under ${lesson.topicName} proficiency increased to ${inputVal}/10`
       );
     }
   });
