@@ -538,9 +538,14 @@ h1, h2, h3, h4 {
 .status-badge {
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 20px;
-  text-transform: uppercase;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .status-badge.weak {
@@ -554,6 +559,10 @@ h1, h2, h3, h4 {
 .status-badge.strong {
   background-color: #d1f7ec;
   color: #0fb9b1;
+}
+.status-badge.none {
+  background-color: var(--border-light);
+  color: var(--text-muted);
 }
 
 /* Chevron indicator */

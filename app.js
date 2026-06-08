@@ -569,6 +569,14 @@ function getScoreStatusLabel(score) {
   return "Mastered";
 }
 
+// Helper: Get Score Status Icon
+function getScoreStatusIcon(score, hasLessons) {
+  if (!hasLessons) return "—";
+  if (score < 4) return "⚠️";
+  if (score < 7) return "⏳";
+  return "✓";
+}
+
 // --- RENDER FUNCTIONS ---
 
 // 1. Render Kid Selector — circular profile button + dropdown menu
@@ -718,8 +726,9 @@ function renderSubjectOverviewAccordion() {
 
   subjectScores.forEach(subj => {
     // If no lessons and no quizzes, we show a clean placeholder, but we still list it!
-    const badgeClass = getScoreBadgeClass(subj.score);
+    const badgeClass = subj.lessonCount > 0 ? getScoreBadgeClass(subj.score) : "none";
     const statusText = subj.lessonCount > 0 ? getScoreStatusLabel(subj.score) : "No Lessons Added";
+    const statusIcon = getScoreStatusIcon(subj.score, subj.lessonCount > 0);
     const barWidth = subj.lessonCount > 0 ? (subj.score * 10) : 0;
     
     const accordionItem = document.createElement('div');
@@ -740,7 +749,7 @@ function renderSubjectOverviewAccordion() {
         </div>
         <span class="prep-score-number">${subj.lessonCount > 0 ? subj.score.toFixed(1) + '/10' : '0.0/10'}</span>
       </div>
-      <span class="status-badge ${badgeClass}">${statusText}</span>
+      <span class="status-badge ${badgeClass}" title="${statusText}">${statusIcon}</span>
       <span class="accordion-chevron">▼</span>
     `;
     
