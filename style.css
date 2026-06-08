@@ -1917,8 +1917,12 @@ body.dark .menu-profile-name {
   }
 
   /* Accordion Subject Header sizing */
-  .accordion-header h3 {
-    font-size: 1.05rem !important; /* Reduced h3 size in accordions */
+  .accordion-subject-name {
+    font-size: 0.9rem !important; /* Reduced subject name size in accordions */
+  }
+  .accordion-header {
+    gap: 8px;
+    padding: 10px 0;
   }
   .accordion-header .subject-meta-left {
     gap: 8px;
@@ -1946,20 +1950,21 @@ body.dark .menu-profile-name {
     font-size: 1.15rem; /* Reduced from 1.4rem */
   }
 
-  /* Subsection list rows */
+  /* Subsection list rows - horizontally aligned */
   .subsection-item-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-    padding: 6px 8px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px;
     font-size: 0.8rem; /* Reduced from 0.9rem */
   }
 
   .subsection-rating-box {
-    justify-content: space-between;
-    margin-top: 4px;
-    border-top: 1px dashed var(--border-light);
-    padding-top: 4px;
+    justify-content: flex-end;
+    margin-top: 0;
+    border-top: none;
+    padding-top: 0;
   }
 
   .subsection-score-text {
