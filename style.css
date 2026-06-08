@@ -1134,12 +1134,23 @@ select:focus {
 }
 
 .modal-content {
+  background-color: var(--paper-white);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: none;
   width: 100%;
   max-width: 500px;
   transform: scale(0.95);
   transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .modal-backdrop.active .modal-content {
@@ -1405,10 +1416,14 @@ body.dark input[type="range"] {
   border-color: #718093;
 }
 
-body.dark .accordion-content,
-body.dark .modal-content {
+body.dark .accordion-content {
   background-color: #2f3640;
   border-color: #718093;
+}
+
+body.dark .modal-content {
+  background-color: var(--paper-white);
+  border: none;
 }
 
 body.dark .subsection-item-row,

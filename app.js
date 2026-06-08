@@ -389,7 +389,7 @@ function closeModal(modalEl) {
   modalEl.classList.remove('active');
 }
 
-document.querySelectorAll('.btn-close-modal').forEach(btn => {
+document.querySelectorAll('.btn-close-modal, .btn-cancel').forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
     closeModal(btn.closest('.modal-backdrop'));
@@ -1392,10 +1392,6 @@ formAddLesson.addEventListener('submit', (e) => {
   subsectionContainer.innerHTML = `
     <div class="subsection-input-row">
       <input type="text" class="subsection-name-input" placeholder="e.g. Meanings">
-      <button type="button" class="btn-remove-row" style="display:none;">&times;</button>
-    </div>
-    <div class="subsection-input-row">
-      <input type="text" class="subsection-name-input" placeholder="e.g. Question & Answers">
       <button type="button" class="btn-remove-row" style="display:none;">&times;</button>
     </div>
   `;
