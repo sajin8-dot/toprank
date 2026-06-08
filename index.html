@@ -31,8 +31,19 @@
       </div>
 
       <!-- Header Controls -->
-      <div class="header-controls" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <!-- Circular Profile Selection Menu -->
+      <div class="header-controls">
+        <!-- Decay Simulator (Time Travel) -->
+        <div class="time-travel-tool" title="Simulate passing of time to see memory decay!">
+          <button id="btn-time-travel-1" class="btn btn-sm btn-secondary" title="+1 Day">+1d</button>
+          <button id="btn-time-travel-5" class="btn btn-sm btn-secondary" title="+5 Days">+5d</button>
+          <button id="btn-time-travel-reset" class="btn btn-sm btn-secondary btn-danger" title="Reset Time" style="padding: 6px 8px; font-size: 0.75rem;">Reset</button>
+          <span id="offset-display" class="offset-badge" style="display: none;">+0d</span>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button id="btn-theme-toggle" class="btn btn-secondary btn-sm btn-round-sm btn-icon-only" title="Toggle Dark/Light Mode" style="font-size: 0.95rem;">🌙</button>
+
+        <!-- Circular Profile Selection Menu (extreme right) -->
         <div class="profile-menu-container" id="profile-menu-container">
           <button class="profile-avatar-btn" id="current-profile-avatar-btn" aria-haspopup="menu" aria-label="Profile menu">
             <span id="current-profile-initial">R</span>
@@ -48,17 +59,6 @@
           </div>
         </div>
         <input type="file" id="profile-photo-uploader" accept="image/*" style="display:none;">
-
-        <!-- Theme Toggle -->
-        <button id="btn-theme-toggle" class="btn btn-secondary btn-sm btn-round-sm btn-icon-only" title="Toggle Dark/Light Mode" style="font-size: 0.95rem;">🌙</button>
-
-        <!-- Debug Time Travel (Visual Simulator) -->
-        <div class="time-travel-tool" title="Simulate passing of time to see memory decay!" style="padding: 4px 8px;">
-          <button id="btn-time-travel-1" class="btn btn-sm btn-secondary" title="+1 Day">+1d</button>
-          <button id="btn-time-travel-5" class="btn btn-sm btn-secondary" title="+5 Days">+5d</button>
-          <button id="btn-time-travel-reset" class="btn btn-sm btn-secondary btn-danger" title="Reset Time" style="padding: 6px 8px; font-size: 0.75rem;">Reset</button>
-          <span id="offset-display" class="offset-badge" style="display: none;">+0d</span>
-        </div>
       </div>
     </header>
 
