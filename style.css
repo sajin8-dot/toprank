@@ -352,7 +352,7 @@ h1, h2, h3, h4 {
 /* --- Kid Stats Dashboard --- */
 .kid-stats-card {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 16px;
   align-items: center;
   margin-bottom: 8px;

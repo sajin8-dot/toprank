@@ -452,22 +452,20 @@ function renderKidStats() {
   const kidLessons = state.lessons.filter(l => l.kidId === kid.id);
   const activeQuizzes = state.quizzes.filter(q => q.kidId === kid.id);
   
-  // Calculate average overall rating across all kid's subjects
+  // Calculate overall preparation index as a percentage across all kid's customized subjects
+  const kidSubjects = state.subjects.filter(s => s.kidId === kid.id);
   let totalScore = 0;
-  let subjectCount = 0;
-  const uniqueSubjects = [...new Set(kidLessons.map(l => l.subjectName))];
-  
-  uniqueSubjects.forEach(subjName => {
-    totalScore += getSubjectRating(kid.id, subjName);
-    subjectCount++;
+  kidSubjects.forEach(subj => {
+    totalScore += getSubjectRating(kid.id, subj.name);
   });
   
-  const overallRating = subjectCount > 0 ? (totalScore / subjectCount).toFixed(1) : "0.0";
+  const overallPercentage = kidSubjects.length > 0 ? Math.round((totalScore / (kidSubjects.length * 10)) * 100) : 0;
   
-  // Find weakest subject
+  // Find weakest subject (from subjects that have lessons)
+  const uniqueSubjectsWithLessons = [...new Set(kidLessons.map(l => l.subjectName))];
   let weakestSubj = "None";
   let minScore = 11;
-  uniqueSubjects.forEach(subjName => {
+  uniqueSubjectsWithLessons.forEach(subjName => {
     const score = getSubjectRating(kid.id, subjName);
     if (score < minScore) {
       minScore = score;
@@ -480,7 +478,11 @@ function renderKidStats() {
   elKidSummary.innerHTML = `
     <div class="kid-summary-meta">
       <h2>${kid.name}'s Learning Board</h2>
-      <p>Tracking school items for ${kid.std} • Overall Preparation Index: <strong>${overallRating}/10</strong></p>
+      <p>Tracking school items for ${kid.std}</p>
+    </div>
+    <div class="stat-box">
+      <span class="stat-val">${overallPercentage}%</span>
+      <span class="stat-label">Prep Index</span>
     </div>
     <div class="stat-box">
       <span class="stat-val">${kidLessons.length}</span>
