@@ -1106,23 +1106,24 @@ function renderMasterSubjects() {
   });
 }
 
-// Start editing a subject's color
+// Start editing a subject
 function startEditSubject(subjName) {
   const subj = state.subjects.find(s => s.kidId === state.currentKidId && s.name === subjName);
   if (!subj) return;
-  
+
   editingSubjectName = subjName;
-  
+
   document.getElementById('subject-form-title').textContent = `Edit Subject: ${subj.name}`;
   document.getElementById('new-subject-name').value = subj.name;
-  document.getElementById('new-subject-name').disabled = true; // Name cannot be edited to avoid corruption
-  
-  // Select color radio swatch
+  document.getElementById('new-subject-name').disabled = false; // Allow name editing
+
+  // Select matching color swatch
   const colorRadio = formAddSubject.querySelector(`input[name="subj-color"][value="${subj.color}"]`);
-  if (colorRadio) {
-    colorRadio.checked = true;
-  }
-  
+  if (colorRadio) colorRadio.checked = true;
+
+  document.getElementById('new-subject-decay').value = subj.decayRate || 0.5;
+  document.getElementById('decay-rate-bubble').textContent = subj.decayRate || 0.5;
+
   document.getElementById('btn-submit-subject').textContent = 'Save Changes';
   document.getElementById('btn-cancel-subject-edit').style.display = 'inline-block';
 }
@@ -1522,30 +1523,57 @@ formUpdateRatings.addEventListener('submit', (e) => {
 // Form Submission: Add/Edit Master Subject
 formAddSubject.addEventListener('submit', (e) => {
   e.preventDefault();
-  
-  const name = document.getElementById('new-subject-name').value.trim();
+
+  const nameInput = document.getElementById('new-subject-name');
+  const name = nameInput.value.trim();
   const colorRadio = formAddSubject.querySelector('input[name="subj-color"]:checked');
   const color = colorRadio ? colorRadio.value : '#ff6b6b';
   const decayRate = parseFloat(document.getElementById('new-subject-decay').value);
 
+  if (!name) {
+    alert('Please enter a subject name.');
+    nameInput.focus();
+    return;
+  }
+
   if (editingSubjectName) {
-    // Edit mode
+    // --- EDIT MODE ---
     const subj = state.subjects.find(s => s.kidId === state.currentKidId && s.name === editingSubjectName);
     if (subj) {
+      const oldName = editingSubjectName;
+      const newName = name;
+
+      // Check name conflict (only if the name actually changed)
+      if (newName !== oldName && state.subjects.some(s => s.kidId === state.currentKidId && s.name.toLowerCase() === newName.toLowerCase())) {
+        alert('A subject with that name already exists.');
+        return;
+      }
+
+      // Update subject record
+      subj.name = newName;
       subj.color = color;
       subj.decayRate = decayRate;
-      
-      logActivity(state.currentKidId, "subject", `Subject '${editingSubjectName}' updated (Color: ${color}, Decay Rate: ${decayRate}).`);
-      
+
+      // Cascade rename to all lessons for this kid
+      state.lessons.forEach(l => {
+        if (l.kidId === state.currentKidId && l.subjectName === oldName) {
+          l.subjectName = newName;
+        }
+      });
+
+      logActivity(state.currentKidId, 'subject', `Subject '${oldName}' renamed to '${newName}' and updated.`);
       saveState();
       cancelEditSubject();
       renderAll();
+      populateSubjectDropdowns();
     }
   } else {
-    // Add mode
+    // --- ADD MODE ---
     addSubject(name, color, decayRate);
     formAddSubject.reset();
-    if (colorRadio) colorRadio.checked = true;
+    // Re-check first swatch after reset
+    const firstRadio = formAddSubject.querySelector('input[name="subj-color"]');
+    if (firstRadio) firstRadio.checked = true;
     document.getElementById('decay-rate-bubble').textContent = '0.5';
     renderAll();
   }
