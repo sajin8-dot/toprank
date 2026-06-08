@@ -8,12 +8,12 @@
   --font-body: 'Inter', system-ui, sans-serif;
 
   /* Colors - Soft Pastel & High-Vibrancy Kid Friendly Palette */
-  --bg-cream: #faf8f3;
+  --bg-cream: #fcfbfa;
   --paper-white: #ffffff;
   --text-dark: #2d3436;
   --text-muted: #7f8c8d;
-  --border-light: #e8e6df;
-  --grid-dot-color: rgba(210, 204, 193, 0.2);
+  --border-light: #eceae4;
+  --grid-dot-color: transparent;
   
   /* Status Colors */
   --color-weak: #ff6b6b;      /* 🔴 Red */
@@ -49,9 +49,6 @@
 body {
   font-family: var(--font-body);
   background-color: var(--bg-cream);
-  /* Bullet Journal Dotted Grid Background */
-  background-image: radial-gradient(var(--grid-dot-color) 1.5px, transparent 1.5px);
-  background-size: 20px 20px;
   color: var(--text-dark);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -71,30 +68,24 @@ body {
 
 /* --- Common Components (Buttons, Cards) --- */
 .card {
-  background: var(--paper-white);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  border-radius: 0;
+  padding: 20px 0;
+  box-shadow: none;
+  transition: none;
   position: relative;
   overflow: hidden;
 }
 
 .card::before {
-  /* Cute bullet journal margin line */
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 8px;
-  width: 1px;
-  background-color: rgba(255, 123, 144, 0.1);
+  display: none;
 }
 
 .card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: none;
+  box-shadow: none;
 }
 
 /* Typography */
@@ -406,10 +397,11 @@ h1, h2, h3, h4 {
 }
 
 .accordion-item {
-  background: var(--paper-white);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  border-radius: 0;
+  box-shadow: none;
   overflow: hidden;
   transition: all var(--transition-normal);
 }
@@ -419,10 +411,10 @@ h1, h2, h3, h4 {
   grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 16px;
-  padding: 16px 20px;
+  padding: 14px 0;
   cursor: pointer;
   user-select: none;
-  border-left: 8px solid var(--brand-pink);
+  border-left: none;
   transition: background var(--transition-fast);
 }
 
@@ -582,40 +574,46 @@ h1, h2, h3, h4 {
 /* --- NAVIGATION TABS --- */
 .navigation-tabs {
   display: flex;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: var(--radius-md);
-  padding: 6px;
-  border: 1px solid rgba(255,255,255,0.6);
-  gap: 8px;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  border-bottom: 1.5px solid var(--border-light);
+  gap: 20px;
+  margin-bottom: 16px;
+  overflow-x: auto;
 }
 
 .nav-tab {
-  flex: 1;
+  flex: none;
   border: none;
   background: none;
   font-family: var(--font-header);
   font-weight: 700;
   font-size: 0.95rem;
-  padding: 12px 8px;
+  padding: 10px 0;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   transition: all var(--transition-fast);
   color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  border-bottom: 2px solid transparent;
 }
 
 .nav-tab:hover {
-  background-color: rgba(255, 255, 255, 0.6);
+  background-color: transparent;
   color: var(--text-dark);
 }
 
 .nav-tab.active {
-  background-color: var(--paper-white);
-  color: var(--brand-pink);
-  box-shadow: var(--shadow-sm);
+  background-color: transparent;
+  color: var(--text-dark);
+  border-bottom: 2px solid var(--brand-pink);
+  font-weight: 850;
+  box-shadow: none;
 }
 
 .nav-tab .badge {
@@ -692,10 +690,8 @@ h1, h2, h3, h4 {
 
 /* LESSON CARD DESIGN (BULLET JOURNAL SHEETS) */
 .lesson-card {
-  border-left: 10px solid var(--brand-pink);
-  background-color: var(--paper-white);
-  background-image: linear-gradient(rgba(232, 230, 223, 0.4) 1px, transparent 1px);
-  background-size: 100% 24px; /* Notebook row lines styling */
+  border-left: none;
+  background: transparent;
   padding-top: 12px;
 }
 
@@ -1331,25 +1327,38 @@ select:focus {
 
 /* --- Icon-Only Action Buttons --- */
 .btn-icon-only {
-  width: 32px;
-  height: 32px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   padding: 0 !important;
-  border-radius: 50% !important;
-  font-size: 1rem !important;
+  border-radius: 0 !important;
+  font-size: 1.15rem !important;
+  cursor: pointer;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   aspect-ratio: 1 / 1;
+  width: auto !important;
+  height: auto !important;
+  transition: transform var(--transition-fast) !important;
+}
+
+.btn-icon-only:hover {
+  transform: scale(1.2) !important;
+}
+
+.btn-icon-only:active {
+  transform: scale(0.95) !important;
 }
 
 /* --- Dark Mode Styles --- */
 body.dark {
-  --bg-cream: #1e272e;
-  --paper-white: #2f3640;
-  --text-dark: #f5f6fa;
-  --text-muted: #a4b0be;
-  --border-light: #718093;
-  --grid-dot-color: rgba(255, 255, 255, 0.05);
+  --bg-cream: #121212;
+  --paper-white: #1e1e1e;
+  --text-dark: #ececec;
+  --text-muted: #999999;
+  --border-light: #2d2d2d;
+  --grid-dot-color: transparent;
 }
 
 body.dark .app-header {

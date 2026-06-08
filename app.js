@@ -11,16 +11,31 @@ const DEFAULT_STATE = {
   kids: [
     { id: "kid-rahel", name: "Rahel", age: 12, std: "Std 7", avatar: "🎒" },
     { id: "kid-elsa", name: "Elsa", age: 9, std: "Std 4", avatar: "🎨" },
-    { id: "kid-aaliyah", name: "Aaliyah", age: 7, std: "Std 2", avatar: "🚀" }
+    { id: "kid-eliah", name: "Eliah", age: 7, std: "Std 2", avatar: "🚀" }
   ],
   currentKidId: "kid-rahel",
   subjects: [
-    { name: "Maths", color: "#54a0ff", decayRate: 0.5 },
-    { name: "Hindi", color: "#ff9f43", decayRate: 0.5 },
-    { name: "Geography", color: "#1dd1a1", decayRate: 0.5 },
-    { name: "Science", color: "#5f27cd", decayRate: 0.5 },
-    { name: "History", color: "#ff6b6b", decayRate: 0.5 },
-    { name: "English", color: "#ff9ff3", decayRate: 0.5 }
+    // Rahel's subjects
+    { kidId: "kid-rahel", name: "Maths", color: "#54a0ff", decayRate: 0.5 },
+    { kidId: "kid-rahel", name: "Hindi", color: "#ff9f43", decayRate: 0.5 },
+    { kidId: "kid-rahel", name: "Geography", color: "#1dd1a1", decayRate: 0.5 },
+    { kidId: "kid-rahel", name: "Science", color: "#5f27cd", decayRate: 0.5 },
+    { kidId: "kid-rahel", name: "History", color: "#ff6b6b", decayRate: 0.5 },
+    { kidId: "kid-rahel", name: "English", color: "#ff9ff3", decayRate: 0.5 },
+    // Elsa's subjects
+    { kidId: "kid-elsa", name: "Maths", color: "#54a0ff", decayRate: 0.5 },
+    { kidId: "kid-elsa", name: "Hindi", color: "#ff9f43", decayRate: 0.5 },
+    { kidId: "kid-elsa", name: "Geography", color: "#1dd1a1", decayRate: 0.5 },
+    { kidId: "kid-elsa", name: "Science", color: "#5f27cd", decayRate: 0.5 },
+    { kidId: "kid-elsa", name: "History", color: "#ff6b6b", decayRate: 0.5 },
+    { kidId: "kid-elsa", name: "English", color: "#ff9ff3", decayRate: 0.5 },
+    // Eliah's subjects
+    { kidId: "kid-eliah", name: "Maths", color: "#54a0ff", decayRate: 0.5 },
+    { kidId: "kid-eliah", name: "Hindi", color: "#ff9f43", decayRate: 0.5 },
+    { kidId: "kid-eliah", name: "Geography", color: "#1dd1a1", decayRate: 0.5 },
+    { kidId: "kid-eliah", name: "Science", color: "#5f27cd", decayRate: 0.5 },
+    { kidId: "kid-eliah", name: "History", color: "#ff6b6b", decayRate: 0.5 },
+    { kidId: "kid-eliah", name: "English", color: "#ff9ff3", decayRate: 0.5 }
   ],
   lessons: [
     // Rahel's Lessons
@@ -84,10 +99,10 @@ const DEFAULT_STATE = {
       ]
     },
 
-    // Aaliyah's Lessons
+    // Eliah's Lessons
     {
       id: "less-eli1",
-      kidId: "kid-aaliyah",
+      kidId: "kid-eliah",
       subjectName: "Maths",
       topicName: "Addition & Regrouping",
       createdDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
@@ -101,16 +116,16 @@ const DEFAULT_STATE = {
     { id: "q-r1", kidId: "kid-rahel", subjectName: "Maths", topicName: "Linear Equations Unit Test", date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
     { id: "q-r2", kidId: "kid-rahel", subjectName: "Geography", topicName: "Plates & Faults Quiz", date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
     { id: "q-el1", kidId: "kid-elsa", subjectName: "Geography", topicName: "India Map Quiz", date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
-    { id: "q-eli1", kidId: "kid-aaliyah", subjectName: "Maths", topicName: "Carryover Quiz", date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }
+    { id: "q-eli1", kidId: "kid-eliah", subjectName: "Maths", topicName: "Carryover Quiz", date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }
   ],
   logs: [
-    { id: "log-1", kidId: "kid-rahel", timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "📚 Lesson 'Linear Equations' added to Maths with 3 sub-sections." },
-    { id: "log-2", kidId: "kid-rahel", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "rating", message: "🎯 Updated 'Short Q&A Problems' in 'Linear Equations' (Maths) to 8/10." },
-    { id: "log-3", kidId: "kid-rahel", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "quiz", message: "📅 Scheduled new quiz for 'Linear Equations Unit Test' in Maths on " + new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString() },
+    { id: "log-1", kidId: "kid-rahel", timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "Lesson 'Linear Equations' added to Maths with 3 sub-sections." },
+    { id: "log-2", kidId: "kid-rahel", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "rating", message: "Updated 'Short Q&A Problems' in 'Linear Equations' (Maths) to 8/10." },
+    { id: "log-3", kidId: "kid-rahel", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "quiz", message: "Scheduled new quiz for 'Linear Equations Unit Test' in Maths on " + new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString() },
     
-    { id: "log-4", kidId: "kid-elsa", timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "📚 Lesson 'Map of India' added to Geography with 2 sub-sections." },
+    { id: "log-4", kidId: "kid-elsa", timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "Lesson 'Map of India' added to Geography with 2 sub-sections." },
     
-    { id: "log-5", kidId: "kid-aaliyah", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "📚 Lesson 'Addition & Regrouping' added to Maths with 2 sub-sections." }
+    { id: "log-5", kidId: "kid-eliah", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "Lesson 'Addition & Regrouping' added to Maths with 2 sub-sections." }
   ],
   dateOffset: 0, // Days added dynamically for simulation
   theme: "light",
@@ -129,47 +144,51 @@ function loadState() {
       // Ensure dateOffset exists
       if (typeof state.dateOffset === 'undefined') state.dateOffset = 0;
       
-      // Migrate kid-eliah to kid-aaliyah / Eliah to Aaliyah
       let migrated = false;
+      
+      // Migrate kid-aaliyah to kid-eliah / Aaliyah to Eliah
       if (state.kids) {
         state.kids.forEach(k => {
-          if (k.id === "kid-eliah" || k.name === "Eliah") {
-            k.id = "kid-aaliyah";
-            k.name = "Aaliyah";
+          if (k.id === "kid-aaliyah" || k.name === "Aaliyah") {
+            k.id = "kid-eliah";
+            k.name = "Eliah";
             migrated = true;
           }
         });
       }
-      if (state.currentKidId === "kid-eliah") {
-        state.currentKidId = "kid-aaliyah";
+      if (state.currentKidId === "kid-aaliyah") {
+        state.currentKidId = "kid-eliah";
         migrated = true;
       }
       if (state.lessons) {
         state.lessons.forEach(l => {
-          if (l.kidId === "kid-eliah") {
-            l.kidId = "kid-aaliyah";
+          if (l.kidId === "kid-aaliyah") {
+            l.kidId = "kid-eliah";
             migrated = true;
           }
         });
       }
       if (state.quizzes) {
         state.quizzes.forEach(q => {
-          if (q.kidId === "kid-eliah") {
-            q.kidId = "kid-aaliyah";
+          if (q.kidId === "kid-aaliyah") {
+            q.kidId = "kid-eliah";
             migrated = true;
           }
         });
       }
       if (state.logs) {
         state.logs.forEach(log => {
-          if (log.kidId === "kid-eliah") {
-            log.kidId = "kid-aaliyah";
+          if (log.kidId === "kid-aaliyah") {
+            log.kidId = "kid-eliah";
             migrated = true;
           }
         });
       }
-      // Strip subject emojis from loaded subjects and set default decay rate
+
+      // Partition subjects by kidId if they don't have one
       if (state.subjects) {
+        let hasGlobalSubjects = false;
+        const partitionedSubjects = [];
         state.subjects.forEach(s => {
           if (s.emoji) {
             delete s.emoji;
@@ -179,8 +198,35 @@ function loadState() {
             s.decayRate = 0.5;
             migrated = true;
           }
+          
+          if (!s.kidId) {
+            hasGlobalSubjects = true;
+            const kidsList = state.kids || DEFAULT_STATE.kids;
+            kidsList.forEach(k => {
+              const targetKidId = k.id === "kid-aaliyah" ? "kid-eliah" : k.id;
+              if (!partitionedSubjects.some(ps => ps.kidId === targetKidId && ps.name.toLowerCase() === s.name.toLowerCase())) {
+                partitionedSubjects.push({
+                  kidId: targetKidId,
+                  name: s.name,
+                  color: s.color,
+                  decayRate: s.decayRate
+                });
+              }
+            });
+          } else {
+            if (s.kidId === "kid-aaliyah") {
+              s.kidId = "kid-eliah";
+              migrated = true;
+            }
+            partitionedSubjects.push(s);
+          }
         });
+        if (hasGlobalSubjects) {
+          state.subjects = partitionedSubjects;
+          migrated = true;
+        }
       }
+
       if (typeof state.theme === 'undefined') {
         state.theme = 'light';
         migrated = true;
@@ -251,10 +297,10 @@ function getDaysElapsed(pastDateIsoString) {
 
 // Calculate decayed rating for a subsection
 // Base rating decays linear-style by subject's decay rate per day since lastUpdatedDate
-function getDecayedRating(subjectName, baseRating, lastUpdatedDate) {
+function getDecayedRating(subjectName, baseRating, lastUpdatedDate, kidId) {
   if (baseRating === 0) return 0; // Starts at 0, no decay since it hasn't been learned/rated
   
-  const subjConfig = getSubjectConfig(subjectName);
+  const subjConfig = getSubjectConfig(subjectName, kidId);
   const decayRate = typeof subjConfig.decayRate !== 'undefined' ? subjConfig.decayRate : DECAY_RATE;
   
   const days = getDaysElapsed(lastUpdatedDate);
@@ -266,7 +312,7 @@ function getDecayedRating(subjectName, baseRating, lastUpdatedDate) {
 function getLessonRating(lesson) {
   if (!lesson.subSections || lesson.subSections.length === 0) return 0;
   const sum = lesson.subSections.reduce((acc, sub) => {
-    return acc + getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate);
+    return acc + getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate, lesson.kidId);
   }, 0);
   return parseFloat((sum / lesson.subSections.length).toFixed(2));
 }
@@ -356,8 +402,9 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
 });
 
 // --- Helper: Get Subject Config (color) ---
-function getSubjectConfig(subjectName) {
-  const subj = state.subjects.find(s => s.name.toLowerCase() === subjectName.toLowerCase());
+function getSubjectConfig(subjectName, kidId) {
+  const targetKidId = kidId || state.currentKidId;
+  const subj = state.subjects.find(s => s.kidId === targetKidId && s.name.toLowerCase() === subjectName.toLowerCase());
   return subj || { color: "#7f8c8d" };
 }
 
@@ -370,9 +417,9 @@ function getScoreBadgeClass(score) {
 
 // Helper: Get Score Tag text
 function getScoreStatusLabel(score) {
-  if (score < 4) return "Critical Review 🔴";
-  if (score < 7) return "Review Soon 🟡";
-  return "Mastered! 🟢";
+  if (score < 4) return "Critical Review";
+  if (score < 7) return "Review Soon";
+  return "Mastered";
 }
 
 // --- RENDER FUNCTIONS ---
@@ -455,9 +502,10 @@ function renderSubjectOverviewAccordion() {
   const kid = state.kids.find(k => k.id === state.currentKidId);
   if (!kid) return;
 
-  // We gather ALL master subjects so parents see overview.
+  // We gather kid's master subjects.
+  const kidSubjects = state.subjects.filter(s => s.kidId === kid.id);
   // Calculate aggregate score for each subject, then sort.
-  const subjectScores = state.subjects.map(subj => {
+  const subjectScores = kidSubjects.map(subj => {
     const score = getSubjectRating(kid.id, subj.name);
     const kidLessons = state.lessons.filter(l => l.kidId === kid.id && l.subjectName === subj.name);
     const kidQuizzes = state.quizzes.filter(q => q.kidId === kid.id && q.subjectName === subj.name);
@@ -492,7 +540,7 @@ function renderSubjectOverviewAccordion() {
   subjectScores.forEach(subj => {
     // If no lessons and no quizzes, we show a clean placeholder, but we still list it!
     const badgeClass = getScoreBadgeClass(subj.score);
-    const statusText = subj.lessonCount > 0 ? getScoreStatusLabel(subj.score) : "No Lessons Added 📝";
+    const statusText = subj.lessonCount > 0 ? getScoreStatusLabel(subj.score) : "No Lessons Added";
     const barWidth = subj.lessonCount > 0 ? (subj.score * 10) : 0;
     
     const accordionItem = document.createElement('div');
@@ -534,7 +582,7 @@ function renderSubjectOverviewAccordion() {
         const lClass = getScoreBadgeClass(rating);
         lessonsListHtml += `
           <div class="mini-item">
-            <span class="mini-topic">📖 ${less.topicName}</span>
+            <span class="mini-topic">${less.topicName}</span>
             <span class="mini-score-tag ${lClass}" style="background-color: ${subj.color}22; color: ${subj.color};">${rating}/10</span>
           </div>
         `;
@@ -548,13 +596,13 @@ function renderSubjectOverviewAccordion() {
       subj.quizzes.forEach(q => {
         const days = calculateDaysToGo(q.date);
         let daysText = '';
-        if (days < 0) daysText = "Overdue! ⚠️";
-        else if (days === 0) daysText = "Today! 🔥";
-        else daysText = `${days} days to go`;
+        if (days < 0) daysText = `Overdue (${Math.abs(days)}d ago)`;
+        else if (days === 0) daysText = "Today";
+        else daysText = `${days}d left`;
 
         quizzesListHtml += `
           <div class="mini-item">
-            <span class="mini-topic">📅 ${q.topicName}</span>
+            <span class="mini-topic">${q.topicName}</span>
             <span class="mini-score-tag" style="background-color: #ffeef1; color: var(--brand-pink);">${daysText}</span>
           </div>
         `;
@@ -657,7 +705,6 @@ function renderJournal() {
   if (filteredLessons.length === 0) {
     elLessonsContainer.innerHTML = `
       <div class="card" style="text-align: center; padding: 40px 20px;">
-        <span style="font-size: 3rem;">📓</span>
         <h3 style="margin-top: 10px;">No journal entries yet</h3>
         <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 20px;">Add what was learned in school today to start tracking!</p>
         <button class="btn btn-primary btn-round" id="btn-empty-add-lesson">＋ Add Daily Lesson</button>
@@ -677,7 +724,7 @@ function renderJournal() {
 
   // Draw Lesson Cards
   filteredLessons.forEach(lesson => {
-    const subjConfig = getSubjectConfig(lesson.subjectName);
+    const subjConfig = getSubjectConfig(lesson.subjectName, lesson.kidId);
     const lessonRating = getLessonRating(lesson);
     const badgeClass = getScoreBadgeClass(lessonRating);
 
@@ -688,28 +735,27 @@ function renderJournal() {
     // Build sub-sections list html
     let subSectionsHtml = '';
     lesson.subSections.forEach(sub => {
-      const decayedRating = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate);
+      const decayedRating = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate, lesson.kidId);
       const elapsedDays = getDaysElapsed(sub.lastUpdatedDate);
       const subBadgeClass = getScoreBadgeClass(decayedRating);
       
       let decayInfoHtml = '';
       if (sub.baseRating === 0) {
-        decayInfoHtml = `<span class="decay-warning">Not rated yet 🛑</span>`;
+        decayInfoHtml = `<span class="decay-warning"> (unrated)</span>`;
       } else if (elapsedDays > 0) {
         const diff = (sub.baseRating - decayedRating).toFixed(1);
-        decayInfoHtml = `<span class="decay-warning">Decayed from ${sub.baseRating} (-${diff} pts over ${elapsedDays}d) ⏳</span>`;
+        decayInfoHtml = `<span class="decay-warning"> (decayed -${diff} over ${elapsedDays}d)</span>`;
       } else {
-        decayInfoHtml = `<span class="decay-warning" style="color: var(--color-strong);">Practiced today! 🚀</span>`;
+        decayInfoHtml = `<span class="decay-warning" style="color: var(--color-strong);"> (practiced today)</span>`;
       }
 
       subSectionsHtml += `
         <div class="subsection-item-row" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; margin-bottom: 4px;">
           <div class="subsection-label">
-            <span>🔹 ${sub.name}</span>
+            <span>${sub.name}</span>
             ${decayInfoHtml}
           </div>
           <div class="subsection-rating-box" style="display: flex; align-items: center; gap: 8px;">
-            <span class="rating-gauge-mini ${subBadgeClass}"></span>
             <span class="subsection-score-text">${decayedRating.toFixed(1)}/10</span>
             <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-quick-bump" data-lesson-id="${lesson.id}" data-sub-name="${sub.name}" title="Quick Review (Practice +1)" style="width: 24px; height: 24px; font-size: 0.75rem;">＋</button>
           </div>
@@ -801,14 +847,14 @@ function renderQuizzes() {
   if (state.quizView === 'calendar') {
     elListContainer.style.display = 'none';
     elCalendarContainer.style.display = 'block';
-    if (btnToggle) btnToggle.textContent = '📋 List View';
+    if (btnToggle) btnToggle.textContent = 'List View';
     renderQuizCalendar(elCalendarContainer);
     return;
   }
   
   elListContainer.style.display = 'grid';
   elCalendarContainer.style.display = 'none';
-  if (btnToggle) btnToggle.textContent = '📅 Calendar View';
+  if (btnToggle) btnToggle.textContent = 'Calendar View';
   
   elQuizzesContainer.innerHTML = '';
   
@@ -823,7 +869,6 @@ function renderQuizzes() {
   if (kidQuizzes.length === 0) {
     elQuizzesContainer.innerHTML = `
       <div class="card" style="text-align: center; padding: 40px 20px; grid-column: 1 / -1;">
-        <span style="font-size: 3rem;">📅</span>
         <h3 style="margin-top: 10px;">No upcoming quizzes</h3>
         <p class="text-muted" style="font-size: 0.9rem;">Add tests or quizzes to display countdown timers!</p>
       </div>
@@ -832,7 +877,7 @@ function renderQuizzes() {
   }
 
   kidQuizzes.forEach(quiz => {
-    const subjConfig = getSubjectConfig(quiz.subjectName);
+    const subjConfig = getSubjectConfig(quiz.subjectName, quiz.kidId);
     const daysToGo = calculateDaysToGo(quiz.date);
     
     let daysBadgeClass = 'later';
@@ -840,13 +885,13 @@ function renderQuizzes() {
     
     if (daysToGo < 0) {
       daysBadgeClass = 'urgent';
-      daysLabel = `⚠️ Overdue (${Math.abs(daysToGo)}d ago)`;
+      daysLabel = `Overdue (${Math.abs(daysToGo)}d ago)`;
     } else if (daysToGo === 0) {
       daysBadgeClass = 'urgent';
-      daysLabel = '🔥 Today!';
+      daysLabel = 'Today';
     } else if (daysToGo === 1) {
       daysBadgeClass = 'urgent';
-      daysLabel = '⏰ Tomorrow!';
+      daysLabel = 'Tomorrow';
     } else if (daysToGo <= 4) {
       daysBadgeClass = 'soon';
       daysLabel = `${daysToGo} days to go`;
@@ -971,7 +1016,7 @@ function renderQuizCalendar(container) {
       dotsContainer.className = 'calendar-dots-container';
 
       dayQuizzes.forEach(quiz => {
-        const subjConfig = getSubjectConfig(quiz.subjectName);
+        const subjConfig = getSubjectConfig(quiz.subjectName, quiz.kidId);
         const dot = document.createElement('span');
         dot.className = 'quiz-dot';
         dot.style.backgroundColor = subjConfig.color;
@@ -996,7 +1041,8 @@ function renderQuizCalendar(container) {
 function renderMasterSubjects() {
   elMasterSubjectsList.innerHTML = '';
   
-  state.subjects.forEach(subj => {
+  const kidSubjects = state.subjects.filter(s => s.kidId === state.currentKidId);
+  kidSubjects.forEach(subj => {
     const row = document.createElement('div');
     row.className = 'subject-item-row';
     row.innerHTML = `
@@ -1026,7 +1072,7 @@ function renderMasterSubjects() {
 
 // Start editing a subject's color
 function startEditSubject(subjName) {
-  const subj = state.subjects.find(s => s.name === subjName);
+  const subj = state.subjects.find(s => s.kidId === state.currentKidId && s.name === subjName);
   if (!subj) return;
   
   editingSubjectName = subjName;
@@ -1105,7 +1151,8 @@ function populateSubjectDropdowns() {
   const quizSubjSelect = document.getElementById('quiz-subject');
   
   let optionsHtml = '<option value="" disabled selected>Select Subject...</option>';
-  state.subjects.forEach(subj => {
+  const kidSubjects = state.subjects.filter(s => s.kidId === state.currentKidId);
+  kidSubjects.forEach(subj => {
     optionsHtml += `<option value="${subj.name}">${subj.name}</option>`;
   });
   
@@ -1119,7 +1166,7 @@ function completeLesson(lessonId) {
   if (!lesson) return;
 
   state.lessons = state.lessons.filter(l => l.id !== lessonId);
-  logActivity(state.currentKidId, "delete", `🗑️ Lesson '${lesson.topicName}' removed from ${lesson.subjectName} (Exam complete! 🎉)`);
+  logActivity(state.currentKidId, "delete", `Lesson '${lesson.topicName}' removed from ${lesson.subjectName} (Exam complete)`);
   saveState();
   renderAll();
 }
@@ -1130,7 +1177,7 @@ function deleteLesson(lessonId) {
   if (!lesson) return;
 
   state.lessons = state.lessons.filter(l => l.id !== lessonId);
-  logActivity(state.currentKidId, "delete", `🗑️ Deleted lesson '${lesson.topicName}' from ${lesson.subjectName} (correction/cleanup).`);
+  logActivity(state.currentKidId, "delete", `Deleted lesson '${lesson.topicName}' from ${lesson.subjectName} (correction/cleanup).`);
   saveState();
   renderAll();
 }
@@ -1141,7 +1188,7 @@ function deleteQuiz(quizId) {
   if (!quiz) return;
 
   state.quizzes = state.quizzes.filter(q => q.id !== quizId);
-  logActivity(state.currentKidId, "quiz", `✅ Quiz '${quiz.topicName}' in ${quiz.subjectName} completed/removed.`);
+  logActivity(state.currentKidId, "quiz", `Quiz '${quiz.topicName}' in ${quiz.subjectName} completed/removed.`);
   saveState();
   renderAll();
 }
@@ -1153,7 +1200,7 @@ function quickBumpRating(lessonId, subName) {
   const sub = lesson.subSections.find(s => s.name === subName);
   if (!sub) return;
 
-  const decayedVal = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate);
+  const decayedVal = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate, lesson.kidId);
   const newVal = Math.min(10, Math.floor(decayedVal) + 1);
   const oldDecayed = decayedVal;
 
@@ -1163,7 +1210,7 @@ function quickBumpRating(lessonId, subName) {
   logActivity(
     state.currentKidId,
     "rating",
-    `🎯 Practiced (Quick-Bump) '${sub.name}' in '${lesson.topicName}' (${lesson.subjectName}): boosted rating to ${newVal}/10 (was decayed at ${oldDecayed.toFixed(1)}/10).`
+    `Practiced (Quick-Bump) '${sub.name}' in '${lesson.topicName}' (${lesson.subjectName}): boosted rating to ${newVal}/10 (was decayed at ${oldDecayed.toFixed(1)}/10).`
   );
 
   saveState();
@@ -1172,14 +1219,14 @@ function quickBumpRating(lessonId, subName) {
 
 // Add Master Subject
 function addSubject(name, color, decayRate) {
-  // Check if exists
-  if (state.subjects.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+  // Check if exists for the current kid
+  if (state.subjects.some(s => s.kidId === state.currentKidId && s.name.toLowerCase() === name.toLowerCase())) {
     alert("Subject already exists!");
     return;
   }
 
-  state.subjects.push({ name, color, decayRate: decayRate || 0.5 });
-  logActivity(state.currentKidId, "subject", `🎨 Master list updated: Subject '${name}' added.`);
+  state.subjects.push({ kidId: state.currentKidId, name, color, decayRate: decayRate || 0.5 });
+  logActivity(state.currentKidId, "subject", `Subject '${name}' added.`);
   saveState();
   renderMasterSubjects();
   populateSubjectDropdowns();
@@ -1187,8 +1234,8 @@ function addSubject(name, color, decayRate) {
 
 // Delete Master Subject
 function deleteSubject(name) {
-  state.subjects = state.subjects.filter(s => s.name !== name);
-  logActivity(state.currentKidId, "subject", `🎨 Master list updated: Subject '${name}' deleted.`);
+  state.subjects = state.subjects.filter(s => !(s.kidId === state.currentKidId && s.name === name));
+  logActivity(state.currentKidId, "subject", `Subject '${name}' deleted.`);
   saveState();
   renderMasterSubjects();
   populateSubjectDropdowns();
@@ -1199,7 +1246,7 @@ function openUpdateRatingsModal(lessonId) {
   const lesson = state.lessons.find(l => l.id === lessonId);
   if (!lesson) return;
 
-  const subjConfig = getSubjectConfig(lesson.subjectName);
+  const subjConfig = getSubjectConfig(lesson.subjectName, lesson.kidId);
   
   document.getElementById('rating-modal-lesson-id').value = lesson.id;
   
@@ -1213,7 +1260,7 @@ function openUpdateRatingsModal(lessonId) {
   slidersList.innerHTML = '';
 
   lesson.subSections.forEach((sub, index) => {
-    const decayedVal = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate);
+    const decayedVal = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate, lesson.kidId);
     const days = getDaysElapsed(sub.lastUpdatedDate);
     const badgeClass = getScoreBadgeClass(decayedVal);
     
@@ -1327,7 +1374,7 @@ formAddLesson.addEventListener('submit', (e) => {
   };
 
   state.lessons.push(newLesson);
-  logActivity(state.currentKidId, "lesson", `📚 Lesson '${topic}' added to ${subjName} with ${subSections.length} sub-sections (Initial ratings: 0/10).`);
+  logActivity(state.currentKidId, "lesson", `Lesson '${topic}' added to ${subjName} with ${subSections.length} sub-sections (Initial ratings: 0/10).`);
   
   saveState();
   closeModal(modalAddLesson);
@@ -1367,7 +1414,7 @@ formAddQuiz.addEventListener('submit', (e) => {
   state.quizzes.push(newQuiz);
   
   const daysToGo = calculateDaysToGo(quizDate);
-  logActivity(state.currentKidId, "quiz", `📅 Scheduled new quiz for '${topic}' in ${subjName} on ${new Date(quizDate + 'T00:00:00').toLocaleDateString()} (${daysToGo} days to go).`);
+  logActivity(state.currentKidId, "quiz", `Scheduled new quiz for '${topic}' in ${subjName} on ${new Date(quizDate + 'T00:00:00').toLocaleDateString()} (${daysToGo} days to go).`);
   
   saveState();
   closeModal(modalAddQuiz);
@@ -1397,7 +1444,7 @@ formUpdateRatings.addEventListener('submit', (e) => {
     const oldSub = lesson.subSections.find(s => s.name === originalName);
 
     if (oldSub) {
-      const oldDecayed = getDecayedRating(lesson.subjectName, oldSub.baseRating, oldSub.lastUpdatedDate);
+      const oldDecayed = getDecayedRating(lesson.subjectName, oldSub.baseRating, oldSub.lastUpdatedDate, lesson.kidId);
       // If rating value is different, or if name changed, update
       if (Math.round(oldDecayed) !== inputVal || oldSub.name !== inputName) {
         oldSub.baseRating = inputVal;
@@ -1405,7 +1452,7 @@ formUpdateRatings.addEventListener('submit', (e) => {
         logActivity(
           state.currentKidId, 
           "rating", 
-          `🎯 Updated '${inputName}' in '${lesson.topicName}' (${lesson.subjectName}) to ${inputVal}/10 (was ${oldDecayed.toFixed(1)}/10).`
+          `Updated '${inputName}' in '${lesson.topicName}' (${lesson.subjectName}) to ${inputVal}/10 (was ${oldDecayed.toFixed(1)}/10).`
         );
       }
       oldSub.name = inputName; // apply name change
@@ -1420,7 +1467,7 @@ formUpdateRatings.addEventListener('submit', (e) => {
       logActivity(
         state.currentKidId, 
         "rating", 
-        `＋ Added subsection '${inputName}' to '${lesson.topicName}' (${lesson.subjectName}) with rating ${inputVal}/10.`
+        `Added subsection '${inputName}' to '${lesson.topicName}' (${lesson.subjectName}) with rating ${inputVal}/10.`
       );
     }
   });
@@ -1447,12 +1494,12 @@ formAddSubject.addEventListener('submit', (e) => {
 
   if (editingSubjectName) {
     // Edit mode
-    const subj = state.subjects.find(s => s.name === editingSubjectName);
+    const subj = state.subjects.find(s => s.kidId === state.currentKidId && s.name === editingSubjectName);
     if (subj) {
       subj.color = color;
       subj.decayRate = decayRate;
       
-      logActivity(state.currentKidId, "subject", `🎨 Subject '${editingSubjectName}' updated (Color: ${color}, Decay Rate: ${decayRate}).`);
+      logActivity(state.currentKidId, "subject", `Subject '${editingSubjectName}' updated (Color: ${color}, Decay Rate: ${decayRate}).`);
       
       saveState();
       cancelEditSubject();
@@ -1672,29 +1719,35 @@ document.getElementById('btn-modal-add-subsection').addEventListener('click', ()
 window.TopRankTest = {
   runTests: function() {
     console.log("=== RUNNING TOPRANK APP TESTS ===");
+    const dummyKid = "test-kid";
+    
+    // Setup dummy subjects & lessons for isolation
+    const oldLessons = state.lessons;
+    const oldSubjects = state.subjects;
+    
+    state.subjects = [
+      { kidId: dummyKid, name: "Testing", color: "#54a0ff", decayRate: 0.5 }
+    ];
     
     // Test 1: Decay calculation
     // Decay: 0.5 per day. Base rating 10. Elapsed: 4 days. Expected: 10 - 2 = 8
     const test1_date = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
-    const test1_rating = getDecayedRating("Testing", 10, test1_date);
+    const test1_rating = getDecayedRating("Testing", 10, test1_date, dummyKid);
     const test1_passed = test1_rating === 8.0;
     console.log(`Test 1: Linear Decay - ${test1_passed ? 'PASSED ✅' : 'FAILED ❌'} (Expected 8.0, got ${test1_rating})`);
 
     // Test 2: Rating should not go below 0
     const test2_date = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const test2_rating = getDecayedRating("Testing", 10, test2_date);
+    const test2_rating = getDecayedRating("Testing", 10, test2_date, dummyKid);
     const test2_passed = test2_rating === 0.0;
     console.log(`Test 2: Rating Clamp Min 0 - ${test2_passed ? 'PASSED ✅' : 'FAILED ❌'} (Expected 0.0, got ${test2_rating})`);
 
     // Test 3: Unrated starts at 0 and doesn't change
-    const test3_rating = getDecayedRating("Testing", 0, test1_date);
+    const test3_rating = getDecayedRating("Testing", 0, test1_date, dummyKid);
     const test3_passed = test3_rating === 0;
     console.log(`Test 3: Unrated default zero - ${test3_passed ? 'PASSED ✅' : 'FAILED ❌'} (Expected 0, got ${test3_rating})`);
     
     // Test 4: Subject preparation level aggregation
-    const dummyKid = "test-kid";
-    // Setup dummy lessons
-    const oldLessons = state.lessons;
     state.lessons = [
       {
         kidId: dummyKid,
@@ -1719,8 +1772,9 @@ window.TopRankTest = {
     const test4_passed = subjectRating === 7.5;
     console.log(`Test 4: Score Aggregation - ${test4_passed ? 'PASSED ✅' : 'FAILED ❌'} (Expected 7.5, got ${subjectRating})`);
     
-    // Restore lessons state
+    // Restore state
     state.lessons = oldLessons;
+    state.subjects = oldSubjects;
     console.log("=== TESTS COMPLETE ===");
     return test1_passed && test2_passed && test3_passed && test4_passed;
   }
