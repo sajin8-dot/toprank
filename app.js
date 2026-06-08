@@ -11,16 +11,16 @@ const DEFAULT_STATE = {
   kids: [
     { id: "kid-rahel", name: "Rahel", age: 12, std: "Std 7", avatar: "🎒" },
     { id: "kid-elsa", name: "Elsa", age: 9, std: "Std 4", avatar: "🎨" },
-    { id: "kid-eliah", name: "Eliah", age: 7, std: "Std 2", avatar: "🚀" }
+    { id: "kid-aaliyah", name: "Aaliyah", age: 7, std: "Std 2", avatar: "🚀" }
   ],
   currentKidId: "kid-rahel",
   subjects: [
-    { name: "Maths", emoji: "📐", color: "#54a0ff" },
-    { name: "Hindi", emoji: "📙", color: "#ff9f43" },
-    { name: "Geography", emoji: "🌍", color: "#1dd1a1" },
-    { name: "Science", emoji: "🔬", color: "#5f27cd" },
-    { name: "History", emoji: "🏛️", color: "#ff6b6b" },
-    { name: "English", emoji: "📝", color: "#ff9ff3" }
+    { name: "Maths", color: "#54a0ff" },
+    { name: "Hindi", color: "#ff9f43" },
+    { name: "Geography", color: "#1dd1a1" },
+    { name: "Science", color: "#5f27cd" },
+    { name: "History", color: "#ff6b6b" },
+    { name: "English", color: "#ff9ff3" }
   ],
   lessons: [
     // Rahel's Lessons
@@ -84,10 +84,10 @@ const DEFAULT_STATE = {
       ]
     },
 
-    // Eliah's Lessons
+    // Aaliyah's Lessons
     {
       id: "less-eli1",
-      kidId: "kid-eliah",
+      kidId: "kid-aaliyah",
       subjectName: "Maths",
       topicName: "Addition & Regrouping",
       createdDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
@@ -101,7 +101,7 @@ const DEFAULT_STATE = {
     { id: "q-r1", kidId: "kid-rahel", subjectName: "Maths", topicName: "Linear Equations Unit Test", date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
     { id: "q-r2", kidId: "kid-rahel", subjectName: "Geography", topicName: "Plates & Faults Quiz", date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
     { id: "q-el1", kidId: "kid-elsa", subjectName: "Geography", topicName: "India Map Quiz", date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
-    { id: "q-eli1", kidId: "kid-eliah", subjectName: "Maths", topicName: "Carryover Quiz", date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }
+    { id: "q-eli1", kidId: "kid-aaliyah", subjectName: "Maths", topicName: "Carryover Quiz", date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }
   ],
   logs: [
     { id: "log-1", kidId: "kid-rahel", timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "📚 Lesson 'Linear Equations' added to Maths with 3 sub-sections." },
@@ -110,7 +110,7 @@ const DEFAULT_STATE = {
     
     { id: "log-4", kidId: "kid-elsa", timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "📚 Lesson 'Map of India' added to Geography with 2 sub-sections." },
     
-    { id: "log-5", kidId: "kid-eliah", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "📚 Lesson 'Addition & Regrouping' added to Maths with 2 sub-sections." }
+    { id: "log-5", kidId: "kid-aaliyah", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "📚 Lesson 'Addition & Regrouping' added to Maths with 2 sub-sections." }
   ],
   dateOffset: 0 // Days added dynamically for simulation
 };
@@ -126,6 +126,58 @@ function loadState() {
       state = JSON.parse(data);
       // Ensure dateOffset exists
       if (typeof state.dateOffset === 'undefined') state.dateOffset = 0;
+      
+      // Migrate kid-eliah to kid-aaliyah / Eliah to Aaliyah
+      let migrated = false;
+      if (state.kids) {
+        state.kids.forEach(k => {
+          if (k.id === "kid-eliah" || k.name === "Eliah") {
+            k.id = "kid-aaliyah";
+            k.name = "Aaliyah";
+            migrated = true;
+          }
+        });
+      }
+      if (state.currentKidId === "kid-eliah") {
+        state.currentKidId = "kid-aaliyah";
+        migrated = true;
+      }
+      if (state.lessons) {
+        state.lessons.forEach(l => {
+          if (l.kidId === "kid-eliah") {
+            l.kidId = "kid-aaliyah";
+            migrated = true;
+          }
+        });
+      }
+      if (state.quizzes) {
+        state.quizzes.forEach(q => {
+          if (q.kidId === "kid-eliah") {
+            q.kidId = "kid-aaliyah";
+            migrated = true;
+          }
+        });
+      }
+      if (state.logs) {
+        state.logs.forEach(log => {
+          if (log.kidId === "kid-eliah") {
+            log.kidId = "kid-aaliyah";
+            migrated = true;
+          }
+        });
+      }
+      // Strip subject emojis from loaded subjects
+      if (state.subjects) {
+        state.subjects.forEach(s => {
+          if (s.emoji) {
+            delete s.emoji;
+            migrated = true;
+          }
+        });
+      }
+      if (migrated) {
+        saveState();
+      }
     } catch (e) {
       console.error("Error parsing localStorage state, resetting...", e);
       state = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -208,7 +260,7 @@ function getSubjectRating(kidId, subjectName) {
 }
 
 // --- DOM References ---
-const elKidSelector = document.getElementById('kid-selector-container');
+const elKidProfileDropdown = document.getElementById('kid-profile-dropdown');
 const elKidSummary = document.getElementById('kid-summary-card');
 const elAccordionDashboard = document.getElementById('subject-accordion-dashboard');
 const elLessonsContainer = document.getElementById('lessons-container');
@@ -282,10 +334,10 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
   });
 });
 
-// --- Helper: Get Subject Config (emoji, color) ---
+// --- Helper: Get Subject Config (color) ---
 function getSubjectConfig(subjectName) {
   const subj = state.subjects.find(s => s.name.toLowerCase() === subjectName.toLowerCase());
-  return subj || { emoji: "📚", color: "#7f8c8d" };
+  return subj || { color: "#7f8c8d" };
 }
 
 // Helper: Get Badge Class based on score
@@ -304,25 +356,19 @@ function getScoreStatusLabel(score) {
 
 // --- RENDER FUNCTIONS ---
 
-// 1. Render Kid Selector Tab Bar
+// 1. Render Kid Selector Dropdown
 function renderKidSelector() {
-  elKidSelector.innerHTML = '';
+  if (!elKidProfileDropdown) return;
+  elKidProfileDropdown.innerHTML = '';
   state.kids.forEach(kid => {
-    const isActive = kid.id === state.currentKidId;
-    const tab = document.createElement('div');
-    tab.className = `kid-tab ${isActive ? 'active' : ''}`;
-    tab.innerHTML = `
-      <span class="kid-avatar">${kid.avatar}</span>
-      <span class="kid-tab-name">${kid.name}</span>
-      <span class="kid-tab-std">${kid.std} (Age ${kid.age})</span>
-    `;
-    tab.addEventListener('click', () => {
-      state.currentKidId = kid.id;
-      currentJournalFilter = "All"; // reset filter
-      saveState();
-      renderAll();
-    });
-    elKidSelector.appendChild(tab);
+    const isSelected = kid.id === state.currentKidId;
+    const option = document.createElement('option');
+    option.value = kid.id;
+    option.textContent = `${kid.avatar} ${kid.name} (${kid.std})`;
+    if (isSelected) {
+      option.selected = true;
+    }
+    elKidProfileDropdown.appendChild(option);
   });
 }
 
@@ -357,8 +403,7 @@ function renderKidStats() {
     }
   });
 
-  const weakestSubjConfig = getSubjectConfig(weakestSubj);
-  const weakestDisplayText = weakestSubj !== "None" ? `${weakestSubjConfig.emoji} ${weakestSubj} (${minScore.toFixed(1)}/10)` : "None yet";
+  const weakestDisplayText = weakestSubj !== "None" ? `${weakestSubj} (${minScore.toFixed(1)}/10)` : "None yet";
 
   elKidSummary.innerHTML = `
     <div class="kid-summary-meta">
@@ -398,7 +443,6 @@ function renderSubjectOverviewAccordion() {
     
     return {
       name: subj.name,
-      emoji: subj.emoji,
       color: subj.color,
       score: score,
       lessonCount: kidLessons.length,
@@ -440,7 +484,6 @@ function renderSubjectOverviewAccordion() {
     header.style.borderLeftColor = subj.color;
     header.innerHTML = `
       <div class="accordion-subject-info">
-        <span class="accordion-subject-emoji">${subj.emoji}</span>
         <span class="accordion-subject-name">${subj.name}</span>
       </div>
       <div class="prep-score-indicator">
@@ -552,7 +595,7 @@ function renderJournal() {
   // All Pill
   const allPill = document.createElement('div');
   allPill.className = `filter-pill ${currentJournalFilter === 'All' ? 'active' : ''}`;
-  allPill.textContent = "📖 Show All";
+  allPill.textContent = "Show All";
   allPill.addEventListener('click', () => {
     currentJournalFilter = "All";
     renderJournal();
@@ -560,10 +603,9 @@ function renderJournal() {
   elJournalSubjectFilter.appendChild(allPill);
 
   activeSubjects.forEach(subjName => {
-    const config = getSubjectConfig(subjName);
     const pill = document.createElement('div');
     pill.className = `filter-pill ${currentJournalFilter === subjName ? 'active' : ''}`;
-    pill.textContent = `${config.emoji} ${subjName}`;
+    pill.textContent = subjName;
     pill.addEventListener('click', () => {
       currentJournalFilter = subjName;
       renderJournal();
@@ -647,9 +689,9 @@ function renderJournal() {
     card.innerHTML = `
       <div class="lesson-card-header">
         <div>
-          <h4>📖 ${lesson.topicName}</h4>
+          <h4>${lesson.topicName}</h4>
           <div class="lesson-meta-row" style="margin-top: 4px;">
-            <span class="subject-badge-pill" style="background-color: ${subjConfig.color};">${subjConfig.emoji} ${lesson.subjectName}</span>
+            <span class="subject-badge-pill" style="background-color: ${subjConfig.color};">${lesson.subjectName}</span>
             <span class="lesson-date-badge">Joined: ${displayDate}</span>
           </div>
         </div>
@@ -664,9 +706,9 @@ function renderJournal() {
       </div>
 
       <div class="lesson-card-actions">
-        <button class="btn btn-secondary btn-sm btn-round-sm btn-update-ratings" data-id="${lesson.id}">✏️ Update Ratings</button>
-        <button class="btn btn-secondary btn-sm btn-round-sm btn-exam-complete" style="background-color: #d1f7ec; color: #0fb9b1; border-color: #a5f3df;" data-id="${lesson.id}">✅ Exam Complete</button>
-        <button class="btn btn-danger btn-sm btn-round-sm btn-delete-lesson" data-id="${lesson.id}">🗑️ Delete Lesson</button>
+        <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-update-ratings" data-id="${lesson.id}" title="Update Ratings">✏️</button>
+        <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-exam-complete" style="background-color: #d1f7ec; color: #0fb9b1; border-color: #a5f3df;" data-id="${lesson.id}" title="Exam Complete">✅</button>
+        <button class="btn btn-danger btn-sm btn-round-sm btn-icon-only btn-delete-lesson" data-id="${lesson.id}" title="Delete Lesson">🗑️</button>
       </div>
     `;
 
@@ -764,17 +806,17 @@ function renderQuizzes() {
     card.innerHTML = `
       <div>
         <div class="quiz-header">
-          <span class="subject-badge-pill quiz-subject-tag" style="background-color: ${subjConfig.color};">${subjConfig.emoji} ${quiz.subjectName}</span>
+          <span class="subject-badge-pill quiz-subject-tag" style="background-color: ${subjConfig.color};">${quiz.subjectName}</span>
         </div>
         <h4 class="quiz-topic">${quiz.topicName}</h4>
         <div class="quiz-date-row">
-          <span>📅 Date: <strong>${formattedDate}</strong></span>
+          <span>Date: <strong>${formattedDate}</strong></span>
         </div>
       </div>
       
       <div class="quiz-footer">
         <span class="days-left-badge ${daysBadgeClass}">${daysLabel}</span>
-        <button class="btn btn-secondary btn-sm btn-delete-quiz" data-id="${quiz.id}" title="Remove quiz">Delete 🗑️</button>
+        <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-delete-quiz" data-id="${quiz.id}" title="Delete Quiz">🗑️</button>
       </div>
     `;
 
@@ -795,13 +837,12 @@ function renderMasterSubjects() {
     row.className = 'subject-item-row';
     row.innerHTML = `
       <div class="subj-details">
-        <span style="font-size: 1.4rem;">${subj.emoji}</span>
         <span>${subj.name}</span>
         <span style="display:inline-block; width: 14px; height: 14px; border-radius: 50%; background-color: ${subj.color};"></span>
       </div>
       <div style="display: flex; gap: 8px;">
-        <button class="btn btn-secondary btn-sm btn-round-sm btn-edit-subject" data-name="${subj.name}">Edit ✏️</button>
-        <button class="btn btn-danger btn-sm btn-round-sm btn-delete-subject" data-name="${subj.name}">Delete 🗑️</button>
+        <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-edit-subject" data-name="${subj.name}" title="Edit Subject">✏️</button>
+        <button class="btn btn-danger btn-sm btn-round-sm btn-icon-only btn-delete-subject" data-name="${subj.name}" title="Delete Subject">🗑️</button>
       </div>
     `;
     
@@ -819,7 +860,7 @@ function renderMasterSubjects() {
   });
 }
 
-// Start editing a subject's emoji & color
+// Start editing a subject's color
 function startEditSubject(subjName) {
   const subj = state.subjects.find(s => s.name === subjName);
   if (!subj) return;
@@ -829,7 +870,6 @@ function startEditSubject(subjName) {
   document.getElementById('subject-form-title').textContent = `Edit Subject: ${subj.name}`;
   document.getElementById('new-subject-name').value = subj.name;
   document.getElementById('new-subject-name').disabled = true; // Name cannot be edited to avoid corruption
-  document.getElementById('new-subject-emoji').value = subj.emoji;
   
   // Select color radio swatch
   const colorRadio = formAddSubject.querySelector(`input[name="subj-color"][value="${subj.color}"]`);
@@ -837,22 +877,21 @@ function startEditSubject(subjName) {
     colorRadio.checked = true;
   }
   
-  document.getElementById('btn-submit-subject').textContent = 'Save Changes 💾';
+  document.getElementById('btn-submit-subject').textContent = 'Save Changes';
   document.getElementById('btn-cancel-subject-edit').style.display = 'inline-block';
 }
 
 // Cancel subject editing
 function cancelEditSubject() {
   editingSubjectName = null;
-  document.getElementById('subject-form-title').textContent = 'Add New Master Subject';
+  document.getElementById('subject-form-title').textContent = 'Add New Subject';
   document.getElementById('new-subject-name').value = '';
   document.getElementById('new-subject-name').disabled = false;
-  document.getElementById('new-subject-emoji').value = '';
   
   const defaultRadio = formAddSubject.querySelector('input[name="subj-color"]');
   if (defaultRadio) defaultRadio.checked = true;
   
-  document.getElementById('btn-submit-subject').textContent = 'Add Subject 🎨';
+  document.getElementById('btn-submit-subject').textContent = 'Add Subject';
   document.getElementById('btn-cancel-subject-edit').style.display = 'none';
 }
 
@@ -903,7 +942,7 @@ function populateSubjectDropdowns() {
   
   let optionsHtml = '<option value="" disabled selected>Select Subject...</option>';
   state.subjects.forEach(subj => {
-    optionsHtml += `<option value="${subj.name}">${subj.emoji} ${subj.name}</option>`;
+    optionsHtml += `<option value="${subj.name}">${subj.name}</option>`;
   });
   
   lessonSubjSelect.innerHTML = optionsHtml;
@@ -944,15 +983,15 @@ function deleteQuiz(quizId) {
 }
 
 // Add Master Subject
-function addSubject(name, emoji, color) {
+function addSubject(name, color) {
   // Check if exists
   if (state.subjects.some(s => s.name.toLowerCase() === name.toLowerCase())) {
     alert("Subject already exists!");
     return;
   }
 
-  state.subjects.push({ name, emoji, color });
-  logActivity(state.currentKidId, "subject", `🎨 Master list updated: Subject '${name}' ${emoji} added.`);
+  state.subjects.push({ name, color });
+  logActivity(state.currentKidId, "subject", `🎨 Master list updated: Subject '${name}' added.`);
   saveState();
   renderMasterSubjects();
   populateSubjectDropdowns();
@@ -977,7 +1016,7 @@ function openUpdateRatingsModal(lessonId) {
   document.getElementById('rating-modal-lesson-id').value = lesson.id;
   
   const elSubjectBadge = document.getElementById('rating-modal-subject');
-  elSubjectBadge.textContent = `${subjConfig.emoji} ${lesson.subjectName}`;
+  elSubjectBadge.textContent = lesson.subjectName;
   elSubjectBadge.style.backgroundColor = subjConfig.color;
   
   document.getElementById('rating-modal-lesson-title').textContent = lesson.topicName;
@@ -1183,7 +1222,6 @@ formAddSubject.addEventListener('submit', (e) => {
   e.preventDefault();
   
   const name = document.getElementById('new-subject-name').value.trim();
-  const emoji = document.getElementById('new-subject-emoji').value.trim();
   const colorRadio = formAddSubject.querySelector('input[name="subj-color"]:checked');
   const color = colorRadio ? colorRadio.value : '#ff6b6b';
 
@@ -1191,10 +1229,9 @@ formAddSubject.addEventListener('submit', (e) => {
     // Edit mode
     const subj = state.subjects.find(s => s.name === editingSubjectName);
     if (subj) {
-      subj.emoji = emoji;
       subj.color = color;
       
-      logActivity(state.currentKidId, "subject", `🎨 Subject '${editingSubjectName}' updated (Emoji: ${emoji}, Color: ${color}).`);
+      logActivity(state.currentKidId, "subject", `🎨 Subject '${editingSubjectName}' updated (Color: ${color}).`);
       
       saveState();
       cancelEditSubject();
@@ -1202,7 +1239,7 @@ formAddSubject.addEventListener('submit', (e) => {
     }
   } else {
     // Add mode
-    addSubject(name, emoji, color);
+    addSubject(name, color);
     formAddSubject.reset();
     if (colorRadio) colorRadio.checked = true;
     renderAll();
@@ -1222,6 +1259,16 @@ document.getElementById('btn-clear-logs').addEventListener('click', () => {
     renderActivityLog();
   }
 });
+
+// Kid profile dropdown selection change listener
+if (elKidProfileDropdown) {
+  elKidProfileDropdown.addEventListener('change', (e) => {
+    state.currentKidId = e.target.value;
+    currentJournalFilter = "All"; // reset filter
+    saveState();
+    renderAll();
+  });
+}
 
 // --- TIME TRAVEL SIMULATOR ---
 function updateSimulatorDisplay() {

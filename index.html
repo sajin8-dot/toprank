@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TopRank - Bullet Journal Learning Tracker</title>
-  <!-- Google Fonts: Outfit (modern sans) & Fredoka (rounded, kid-friendly) -->
+  <!-- Google Fonts: Inter (academic body) & Merriweather (classical headings) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300&display=swap" rel="stylesheet">
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="style.css">
   <!-- PWA Manifest -->
@@ -28,27 +28,29 @@
         <img src="icon.svg" alt="TopRank Logo" class="header-logo">
         <div class="logo-text">
           <h1>TopRank</h1>
-          <p class="tagline">Bullet Journal Tracker 📓</p>
+          <p class="tagline">Bullet Journal Tracker</p>
         </div>
       </div>
 
-      <!-- Debug Time Travel (Visual Simulator) -->
-      <div class="time-travel-tool" title="Simulate passing of time to see memory decay!">
-        <span class="tool-label">⏳ Simulator:</span>
-        <button id="btn-time-travel-1" class="btn btn-sm btn-secondary">+1 Day</button>
-        <button id="btn-time-travel-5" class="btn btn-sm btn-secondary">+5 Days</button>
-        <button id="btn-time-travel-reset" class="btn btn-sm btn-secondary btn-danger">Reset Time</button>
-        <span id="offset-display" class="offset-badge" style="display: none;">+0d</span>
+      <!-- Header Controls -->
+      <div class="header-controls" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <!-- Kid Select Dropdown -->
+        <div class="profile-select-wrapper" style="display: flex; align-items: center; gap: 6px;">
+          <label for="kid-profile-dropdown" style="font-family: var(--font-header); font-weight: bold; font-size: 0.9rem;">Board:</label>
+          <select id="kid-profile-dropdown" class="profile-dropdown" style="padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; background: white; border: 1.5px solid var(--border-light); cursor: pointer; font-weight: 600;">
+            <!-- Options dynamically loaded in app.js -->
+          </select>
+        </div>
+
+        <!-- Debug Time Travel (Visual Simulator) -->
+        <div class="time-travel-tool" title="Simulate passing of time to see memory decay!" style="padding: 4px 8px;">
+          <button id="btn-time-travel-1" class="btn btn-sm btn-secondary" title="+1 Day">⏳ +1d</button>
+          <button id="btn-time-travel-5" class="btn btn-sm btn-secondary" title="+5 Days">+5d</button>
+          <button id="btn-time-travel-reset" class="btn btn-sm btn-secondary btn-danger" title="Reset Time" style="padding: 6px 8px; font-size: 0.75rem;">Reset</button>
+          <span id="offset-display" class="offset-badge" style="display: none;">+0d</span>
+        </div>
       </div>
     </header>
-
-    <!-- Kid Board Switcher -->
-    <section class="kid-switcher-section">
-      <h2 class="section-title">Kids' Learning Boards 👧👦👶</h2>
-      <div class="kid-tabs" id="kid-selector-container">
-        <!-- Rendered dynamically in app.js -->
-      </div>
-    </section>
 
     <!-- Main Board Content -->
     <main class="board-content" id="main-board">
@@ -61,7 +63,7 @@
       <!-- TOP-LEVEL SUBJECT OVERVIEW ACCORDION (Weakest Subject First) -->
       <section class="subject-overview-section">
         <div class="section-header-row">
-          <h2 class="section-title">Subject Summary 📊 <span class="subtitle">(Weakest on top!)</span></h2>
+          <h2 class="section-title">Subject Summary <span class="subtitle">(Weakest on top!)</span></h2>
         </div>
         <div class="accordion-container" id="subject-accordion-dashboard">
           <!-- Rendered dynamically: Accordions for each subject -->
@@ -70,10 +72,10 @@
 
       <!-- NAVIGATION TABS -->
       <nav class="navigation-tabs">
-        <button class="nav-tab active" data-tab="tab-journal">📖 Journal</button>
-        <button class="nav-tab" data-tab="tab-quizzes">📅 Quizzes <span class="badge" id="quiz-count-badge">0</span></button>
-        <button class="nav-tab" data-tab="tab-subjects">🎨 Edit Subjects</button>
-        <button class="nav-tab" data-tab="tab-log">📜 Activity Log</button>
+        <button class="nav-tab active" data-tab="tab-journal">Journal</button>
+        <button class="nav-tab" data-tab="tab-quizzes">Quizzes <span class="badge" id="quiz-count-badge">0</span></button>
+        <button class="nav-tab" data-tab="tab-subjects">Subjects</button>
+        <button class="nav-tab" data-tab="tab-log">Activity Log</button>
       </nav>
 
       <!-- TAB CONTENTS -->
@@ -83,7 +85,7 @@
         <div class="tab-pane active" id="tab-journal">
           <div class="pane-header">
             <h3>Daily Lessons Journal</h3>
-            <button class="btn btn-primary btn-round" id="btn-open-add-lesson">＋ Add Daily Lesson 📚</button>
+            <button class="btn btn-primary btn-round" id="btn-open-add-lesson">＋ Add Daily Lesson</button>
           </div>
 
           <!-- Subject Filter Pills -->
@@ -100,7 +102,7 @@
         <div class="tab-pane" id="tab-quizzes">
           <div class="pane-header">
             <h3>Upcoming Tests & Quizzes</h3>
-            <button class="btn btn-primary btn-round" id="btn-open-add-quiz">＋ Schedule Quiz 📅</button>
+            <button class="btn btn-primary btn-round" id="btn-open-add-quiz">＋ Schedule Quiz</button>
           </div>
 
           <div class="quizzes-grid" id="quizzes-container">
@@ -122,10 +124,7 @@
                 <label for="new-subject-name">Subject Name</label>
                 <input type="text" id="new-subject-name" placeholder="e.g. Geography, Hindi, Maths" required>
               </div>
-              <div class="form-group">
-                <label for="new-subject-emoji">Subject Emoji</label>
-                <input type="text" id="new-subject-emoji" placeholder="e.g. 📐, 🌍, 📙, 🔬" required>
-              </div>
+
               <div class="form-group">
                 <label for="new-subject-color">Theme Color</label>
                 <div class="color-picker-grid">
@@ -140,8 +139,8 @@
                 </div>
               </div>
               <div class="form-actions-row" style="display: flex; gap: 10px;">
-                <button type="submit" class="btn btn-primary" style="flex: 1;" id="btn-submit-subject">Add Subject 🎨</button>
-                <button type="button" class="btn btn-secondary" style="display: none;" id="btn-cancel-subject-edit">Cancel ❌</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;" id="btn-submit-subject">Add Subject</button>
+                <button type="button" class="btn btn-secondary" style="display: none;" id="btn-cancel-subject-edit">Cancel</button>
               </div>
             </form>
 
@@ -208,7 +207,7 @@
           </div>
           <div class="modal-actions">
             <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Add Lesson 📚</button>
+            <button type="submit" class="btn btn-primary">Add Lesson</button>
           </div>
         </form>
       </div>
@@ -238,7 +237,7 @@
           </div>
           <div class="modal-actions">
             <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Schedule Quiz 📅</button>
+            <button type="submit" class="btn btn-primary">Schedule Quiz</button>
           </div>
         </form>
       </div>
@@ -263,7 +262,7 @@
           
           <div class="modal-actions">
             <button type="button" class="btn btn-secondary btn-close-modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Update Ratings 🎯</button>
+            <button type="submit" class="btn btn-primary">Update Ratings</button>
           </div>
         </form>
       </div>
@@ -286,7 +285,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      <p>&copy; 2026 TopRank Learning Tracker. Handcrafted for Rahel, Elsa, & Eliah 💖</p>
+      <p>&copy; 2026 TopRank Learning Tracker. Handcrafted for Rahel, Elsa, & Aaliyah</p>
     </footer>
 
   </div>

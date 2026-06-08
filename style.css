@@ -4,8 +4,8 @@
 
 /* --- Fonts & Root Tokens --- */
 :root {
-  --font-header: 'Fredoka', 'Outfit', sans-serif;
-  --font-body: 'Outfit', 'Fredoka', sans-serif;
+  --font-header: 'Merriweather', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
 
   /* Colors - Soft Pastel & High-Vibrancy Kid Friendly Palette */
   --bg-cream: #faf8f3;
@@ -13,7 +13,7 @@
   --text-dark: #2d3436;
   --text-muted: #7f8c8d;
   --border-light: #e8e6df;
-  --grid-dot-color: rgba(210, 204, 193, 0.4);
+  --grid-dot-color: rgba(210, 204, 193, 0.2);
   
   /* Status Colors */
   --color-weak: #ff6b6b;      /* 🔴 Red */
@@ -72,7 +72,7 @@ body {
 /* --- Common Components (Buttons, Cards) --- */
 .card {
   background: var(--paper-white);
-  border: 2px solid var(--border-light);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 20px;
   box-shadow: var(--shadow-sm);
@@ -89,11 +89,11 @@ body {
   bottom: 0;
   left: 8px;
   width: 1px;
-  background-color: rgba(255, 123, 144, 0.3);
+  background-color: rgba(255, 123, 144, 0.1);
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
@@ -407,7 +407,7 @@ h1, h2, h3, h4 {
 
 .accordion-item {
   background: var(--paper-white);
-  border: 2px solid var(--border-light);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
@@ -434,10 +434,6 @@ h1, h2, h3, h4 {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.accordion-subject-emoji {
-  font-size: 1.8rem;
 }
 
 .accordion-subject-name {
@@ -1332,3 +1328,17 @@ select:focus {
   color: var(--text-muted);
   font-weight: 500;
 }
+
+/* --- Icon-Only Action Buttons --- */
+.btn-icon-only {
+  width: 32px;
+  height: 32px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  font-size: 1rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  aspect-ratio: 1 / 1;
+}
+
