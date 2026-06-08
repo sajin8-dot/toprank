@@ -268,9 +268,9 @@ const SUPABASE_URL = "https://gtvizvzuslhebcpmplgq.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0dml6dnp1c2xoZWJjcG1wbGdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjI1MDIsImV4cCI6MjA4OTkzODUwMn0.bh3O_6t-QS3gRfh6S_j97QXdoRasdTN1OZW3hDTJBkQ";
 const PROFILE_KEY = "scholastic";
 
-let supabase = null;
+let supabaseClient = null;
 if (window.supabase) {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 function updateSyncStatus(status) {
@@ -295,10 +295,10 @@ function updateSyncStatus(status) {
 }
 
 async function forceSaveStateToSupabase() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
   updateSyncStatus('syncing');
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('toprank_state')
       .upsert({
         profile_key: PROFILE_KEY,
@@ -321,12 +321,12 @@ function saveState() {
   state.updatedAt = new Date().toISOString();
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
   
-  if (supabase) {
+  if (supabaseClient) {
     if (syncTimeout) clearTimeout(syncTimeout);
     updateSyncStatus('syncing');
     syncTimeout = setTimeout(async () => {
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('toprank_state')
           .upsert({
             profile_key: PROFILE_KEY,
@@ -344,14 +344,14 @@ function saveState() {
 }
 
 async function syncWithSupabase() {
-  if (!supabase) {
+  if (!supabaseClient) {
     updateSyncStatus('offline');
     return;
   }
   
   updateSyncStatus('syncing');
   try {
-    const { data: list, error } = await supabase
+    const { data: list, error } = await supabaseClient
       .from('toprank_state')
       .select('state_json, updated_at')
       .eq('profile_key', PROFILE_KEY);
