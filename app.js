@@ -360,6 +360,7 @@ const elOffsetDisplay = document.getElementById('offset-display');
 // Active filter state for the Journal Tab
 let currentJournalFilter = "All";
 let editingSubjectName = null;
+let editingLessonId = null;
 
 // --- Navigation Tabs Handling ---
 document.querySelectorAll('.nav-tab').forEach(tabBtn => {
@@ -387,6 +388,12 @@ function openModal(modalEl) {
 
 function closeModal(modalEl) {
   modalEl.classList.remove('active');
+  // If the lesson modal is closed without saving, reset it back to add-mode
+  if (modalEl === modalAddLesson && editingLessonId) {
+    editingLessonId = null;
+    modalAddLesson.querySelector('h3').textContent = '＋ Add Lesson';
+    modalAddLesson.querySelector('button[type="submit"]').textContent = 'Add Lesson';
+  }
 }
 
 document.querySelectorAll('.btn-close-modal, .btn-cancel').forEach(btn => {
@@ -821,13 +828,19 @@ function renderJournal() {
       </div>
 
       <div class="lesson-card-actions">
-        <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-update-ratings" data-id="${lesson.id}" title="Update Ratings">✏️</button>
+        <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-edit-lesson" data-id="${lesson.id}" title="Edit Lesson Title / Subject">✏️</button>
+        <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-update-ratings" data-id="${lesson.id}" title="Update Ratings">📝</button>
         <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-exam-complete" style="background-color: #d1f7ec; color: #0fb9b1; border-color: #a5f3df;" data-id="${lesson.id}" title="Exam Complete">✅</button>
         <button class="btn btn-danger btn-sm btn-round-sm btn-icon-only btn-delete-lesson" data-id="${lesson.id}" title="Delete Lesson">🗑️</button>
       </div>
     `;
 
-    // Hook edit button
+    // Hook edit lesson button (title/subject)
+    card.querySelector('.btn-edit-lesson').addEventListener('click', () => {
+      openEditLessonModal(lesson.id);
+    });
+
+    // Hook update ratings button
     card.querySelector('.btn-update-ratings').addEventListener('click', () => {
       openUpdateRatingsModal(lesson.id);
     });
@@ -1376,13 +1389,49 @@ document.getElementById('btn-add-subsection-field').addEventListener('click', ()
   subsectionContainer.appendChild(row);
 });
 
-// Form Submission: Add Daily Lesson
+// Open the Add Lesson modal pre-populated for editing an existing lesson
+function openEditLessonModal(lessonId) {
+  const lesson = state.lessons.find(l => l.id === lessonId);
+  if (!lesson) return;
+
+  editingLessonId = lessonId;
+
+  // Update modal heading and submit button
+  modalAddLesson.querySelector('h3').textContent = '✏️ Edit Lesson';
+  modalAddLesson.querySelector('button[type="submit"]').textContent = 'Save Changes';
+
+  // Pre-fill subject
+  populateSubjectDropdowns();
+  const subjSelect = document.getElementById('lesson-subject');
+  subjSelect.value = lesson.subjectName;
+
+  // Pre-fill topic
+  document.getElementById('lesson-topic').value = lesson.topicName;
+
+  // Pre-fill subsections
+  const subsectionContainer = document.getElementById('lesson-subsections-list');
+  subsectionContainer.innerHTML = '';
+  lesson.subSections.forEach((sub, idx) => {
+    const row = document.createElement('div');
+    row.className = 'subsection-input-row';
+    row.innerHTML = `
+      <input type="text" class="subsection-name-input" value="${sub.name}" placeholder="e.g. Meanings">
+      <button type="button" class="btn-remove-row" style="${idx === 0 ? 'display:none;' : ''}">×</button>
+    `;
+    row.querySelector('.btn-remove-row').addEventListener('click', () => row.remove());
+    subsectionContainer.appendChild(row);
+  });
+
+  openModal(modalAddLesson);
+}
+
+
 formAddLesson.addEventListener('submit', (e) => {
   e.preventDefault();
-  
+
   const subjName = document.getElementById('lesson-subject').value;
-  const topic = document.getElementById('lesson-topic').value;
-  
+  const topic = document.getElementById('lesson-topic').value.trim();
+
   // Read dynamic subsections
   const subinputs = subsectionContainer.querySelectorAll('.subsection-name-input');
   const subSections = [];
@@ -1390,38 +1439,57 @@ formAddLesson.addEventListener('submit', (e) => {
     if (input.value.trim() !== '') {
       subSections.push({
         name: input.value.trim(),
-        baseRating: 0, // Starts at zero rating
+        baseRating: 0,
         lastUpdatedDate: new Date().toISOString()
       });
     }
   });
 
   if (subSections.length === 0) {
-    // If no subsections are provided, default to a single "General" subsection
-    subSections.push({
-      name: "General",
-      baseRating: 0,
-      lastUpdatedDate: new Date().toISOString()
-    });
+    subSections.push({ name: 'General', baseRating: 0, lastUpdatedDate: new Date().toISOString() });
   }
 
-  const newLesson = {
-    id: 'less-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
-    kidId: state.currentKidId,
-    subjectName: subjName,
-    topicName: topic,
-    createdDate: new Date().toISOString(),
-    subSections: subSections
-  };
+  if (editingLessonId) {
+    // --- EDIT MODE: update existing lesson, preserve existing ratings ---
+    const lesson = state.lessons.find(l => l.id === editingLessonId);
+    if (lesson) {
+      const oldTopic = lesson.topicName;
+      // Build a map of old subsection ratings by name so we can preserve them
+      const ratingMap = {};
+      lesson.subSections.forEach(s => { ratingMap[s.name] = s; });
 
-  state.lessons.push(newLesson);
-  logActivity(state.currentKidId, "lesson", `Lesson '${topic}' added to ${subjName} with ${subSections.length} sub-sections (Initial ratings: 0/10).`);
-  
-  saveState();
+      lesson.subjectName = subjName;
+      lesson.topicName = topic;
+      lesson.subSections = subSections.map(s => ratingMap[s.name]
+        ? { ...ratingMap[s.name], name: s.name }   // preserve existing ratings
+        : s                                          // new subsection, start at 0
+      );
+
+      logActivity(state.currentKidId, 'lesson', `Lesson '${oldTopic}' edited to '${topic}' under ${subjName}.`);
+      saveState();
+    }
+    editingLessonId = null;
+  } else {
+    // --- ADD MODE: create new lesson ---
+    const newLesson = {
+      id: 'less-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+      kidId: state.currentKidId,
+      subjectName: subjName,
+      topicName: topic,
+      createdDate: new Date().toISOString(),
+      subSections: subSections
+    };
+    state.lessons.push(newLesson);
+    logActivity(state.currentKidId, 'lesson', `Lesson '${topic}' added to ${subjName} with ${subSections.length} sub-sections (Initial ratings: 0/10).`);
+    saveState();
+  }
+
   closeModal(modalAddLesson);
-  
-  // reset form
+
+  // Reset modal back to add-mode defaults
   formAddLesson.reset();
+  modalAddLesson.querySelector('h3').textContent = '＋ Add Lesson';
+  modalAddLesson.querySelector('button[type="submit"]').textContent = 'Add Lesson';
   subsectionContainer.innerHTML = `
     <div class="subsection-input-row">
       <input type="text" class="subsection-name-input" placeholder="e.g. Meanings">
@@ -1431,6 +1499,7 @@ formAddLesson.addEventListener('submit', (e) => {
 
   renderAll();
 });
+
 
 // Form Submission: Add Quiz
 formAddQuiz.addEventListener('submit', (e) => {
