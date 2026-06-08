@@ -17,7 +17,27 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
-<body>
+  <!-- Lock Screen Overlay -->
+  <div id="lock-screen" class="lock-screen-overlay">
+    <div class="lock-card">
+      <div class="lock-logo">
+        <h1>TopRank</h1>
+        <p class="tagline">Bullet Study Journal</p>
+      </div>
+      <form id="lock-form">
+        <div class="form-group-lock" style="display: flex; flex-direction: column; margin-bottom: 16px;">
+          <label for="lock-password" style="font-weight: 600; font-size: 0.85rem; color: var(--text-dark); margin-bottom: 6px; text-align: left;">Access Password</label>
+          <div class="password-input-wrapper" style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="lock-password" placeholder="Enter password..." required style="width: 100%; padding: 10px 40px 10px 12px; font-size: 0.95rem; border-radius: var(--radius-sm); border: 1.5px solid var(--border-light); font-family: var(--font-body); outline: none;">
+            <button type="button" id="btn-toggle-lock-password" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--text-muted); padding: 0;">👁️</button>
+          </div>
+          <p id="lock-error" style="color: var(--color-weak); font-size: 0.8rem; margin-top: 4px; display: none; font-weight: 500; text-align: left;">Incorrect password. Try again!</p>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 600; border-radius: var(--radius-sm);">Unlock Board</button>
+      </form>
+    </div>
+  </div>
+
   <!-- App Container -->
   <div class="app-container">
     
@@ -60,6 +80,8 @@
             <div class="menu-section-title">Photo</div>
             <button class="menu-item" id="btn-menu-take-photo">📷 Take Photo</button>
             <button class="menu-item" id="btn-menu-update-photo">🖼️ Choose from Library</button>
+            <hr class="menu-divider">
+            <button class="menu-item" id="btn-menu-lock" style="color: var(--color-weak);">🔒 Lock Board</button>
           </div>
         </div>
         <input type="file" id="profile-photo-uploader" accept="image/*" style="display:none;">

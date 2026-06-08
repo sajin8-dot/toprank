@@ -1888,6 +1888,62 @@ if (elTakePhoto && elCameraCapture) {
   });
 }
 
+// --- Password Lock Authentication ---
+const AUTH_PASS = "farmhouse@2026";
+const AUTH_STORAGE_KEY = "toprank_auth_success";
+
+function checkAuthentication() {
+  const isUnlocked = localStorage.getItem(AUTH_STORAGE_KEY) === "true";
+  const elLockScreen = document.getElementById('lock-screen');
+  
+  if (isUnlocked) {
+    if (elLockScreen) elLockScreen.classList.add('hidden');
+  } else {
+    if (elLockScreen) elLockScreen.classList.remove('hidden');
+  }
+}
+
+// Bind lock form submission
+const elLockForm = document.getElementById('lock-form');
+if (elLockForm) {
+  elLockForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const passwordInput = document.getElementById('lock-password');
+    const errorMsg = document.getElementById('lock-error');
+    
+    if (passwordInput.value === AUTH_PASS) {
+      localStorage.setItem(AUTH_STORAGE_KEY, "true");
+      checkAuthentication();
+      passwordInput.value = ''; // Clear password field
+      if (errorMsg) errorMsg.style.display = 'none';
+    } else {
+      if (errorMsg) errorMsg.style.display = 'block';
+      passwordInput.value = ''; // Reset input field
+    }
+  });
+}
+
+// Password show/hide toggle
+const btnToggleLockPass = document.getElementById('btn-toggle-lock-password');
+const lockPassInput = document.getElementById('lock-password');
+if (btnToggleLockPass && lockPassInput) {
+  btnToggleLockPass.addEventListener('click', () => {
+    const type = lockPassInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    lockPassInput.setAttribute('type', type);
+    btnToggleLockPass.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+  });
+}
+
+// Lock/Logout menu action
+const btnMenuLock = document.getElementById('btn-menu-lock');
+if (btnMenuLock) {
+  btnMenuLock.addEventListener('click', () => {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    closeProfileMenu();
+    checkAuthentication();
+  });
+}
+
 // --- TIME TRAVEL SIMULATOR ---
 function updateSimulatorDisplay() {
   if (state.dateOffset && state.dateOffset > 0) {
@@ -1987,6 +2043,7 @@ if (elSummaryToggle && elAccordionDashboard && elSummaryArrow) {
   });
 }
 
+checkAuthentication();
 loadState();
 renderAll();
 populateSubjectDropdowns();
