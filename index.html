@@ -28,6 +28,8 @@
           <h1>TopRank</h1>
           <p class="tagline">Bullet Study Journal</p>
         </div>
+        <!-- Sync status indicator -->
+        <span id="sync-status" class="sync-dot" title="Sync status">&#9679;</span>
       </div>
 
       <!-- Header Controls -->
@@ -319,6 +321,8 @@
 
   </div>
 
+  <!-- Supabase JS (CDN) — must load before app.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <!-- JavaScript logic -->
   <script src="app.js"></script>
 </body>

@@ -135,110 +135,116 @@ const DEFAULT_STATE = {
 // --- App State ---
 let state = {};
 
+// --- Migrations & Validation ---
+function runMigrations() {
+  if (typeof state.dateOffset === 'undefined') state.dateOffset = 0;
+  
+  let migrated = false;
+  
+  // Migrate kid-aaliyah to kid-eliah / Aaliyah to Eliah
+  if (state.kids) {
+    state.kids.forEach(k => {
+      if (k.avatar !== "") {
+        k.avatar = "";
+        migrated = true;
+      }
+      if (k.id === "kid-aaliyah" || k.name === "Aaliyah") {
+        k.id = "kid-eliah";
+        k.name = "Eliah";
+        migrated = true;
+      }
+    });
+  }
+  if (state.currentKidId === "kid-aaliyah") {
+    state.currentKidId = "kid-eliah";
+    migrated = true;
+  }
+  if (state.lessons) {
+    state.lessons.forEach(l => {
+      if (l.kidId === "kid-aaliyah") {
+        l.kidId = "kid-eliah";
+        migrated = true;
+      }
+    });
+  }
+  if (state.quizzes) {
+    state.quizzes.forEach(q => {
+      if (q.kidId === "kid-aaliyah") {
+        q.kidId = "kid-eliah";
+        migrated = true;
+      }
+    });
+  }
+  if (state.logs) {
+    state.logs.forEach(log => {
+      if (log.kidId === "kid-aaliyah") {
+        log.kidId = "kid-eliah";
+        migrated = true;
+      }
+    });
+  }
+
+  // Partition subjects by kidId if they don't have one
+  if (state.subjects) {
+    let hasGlobalSubjects = false;
+    const partitionedSubjects = [];
+    state.subjects.forEach(s => {
+      if (s.emoji) {
+        delete s.emoji;
+        migrated = true;
+      }
+      if (typeof s.decayRate === 'undefined') {
+        s.decayRate = 0.5;
+        migrated = true;
+      }
+      
+      if (!s.kidId) {
+        hasGlobalSubjects = true;
+        const kidsList = state.kids || DEFAULT_STATE.kids;
+        kidsList.forEach(k => {
+          const targetKidId = k.id === "kid-aaliyah" ? "kid-eliah" : k.id;
+          if (!partitionedSubjects.some(ps => ps.kidId === targetKidId && ps.name.toLowerCase() === s.name.toLowerCase())) {
+            partitionedSubjects.push({
+              kidId: targetKidId,
+              name: s.name,
+              color: s.color,
+              decayRate: s.decayRate
+            });
+          }
+        });
+      } else {
+        if (s.kidId === "kid-aaliyah") {
+          s.kidId = "kid-eliah";
+          migrated = true;
+        }
+        partitionedSubjects.push(s);
+      }
+    });
+    if (hasGlobalSubjects) {
+      state.subjects = partitionedSubjects;
+      migrated = true;
+    }
+  }
+
+  if (typeof state.theme === 'undefined') {
+    state.theme = 'light';
+    migrated = true;
+  }
+  if (typeof state.quizView === 'undefined') {
+    state.quizView = 'list';
+    migrated = true;
+  }
+  
+  return migrated;
+}
+
 // --- Load State ---
 function loadState() {
   const data = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (data) {
     try {
       state = JSON.parse(data);
-      // Ensure dateOffset exists
-      if (typeof state.dateOffset === 'undefined') state.dateOffset = 0;
-      
-      let migrated = false;
-      
-      // Migrate kid-aaliyah to kid-eliah / Aaliyah to Eliah
-      if (state.kids) {
-        state.kids.forEach(k => {
-          if (k.avatar !== "") {
-            k.avatar = "";
-            migrated = true;
-          }
-          if (k.id === "kid-aaliyah" || k.name === "Aaliyah") {
-            k.id = "kid-eliah";
-            k.name = "Eliah";
-            migrated = true;
-          }
-        });
-      }
-      if (state.currentKidId === "kid-aaliyah") {
-        state.currentKidId = "kid-eliah";
-        migrated = true;
-      }
-      if (state.lessons) {
-        state.lessons.forEach(l => {
-          if (l.kidId === "kid-aaliyah") {
-            l.kidId = "kid-eliah";
-            migrated = true;
-          }
-        });
-      }
-      if (state.quizzes) {
-        state.quizzes.forEach(q => {
-          if (q.kidId === "kid-aaliyah") {
-            q.kidId = "kid-eliah";
-            migrated = true;
-          }
-        });
-      }
-      if (state.logs) {
-        state.logs.forEach(log => {
-          if (log.kidId === "kid-aaliyah") {
-            log.kidId = "kid-eliah";
-            migrated = true;
-          }
-        });
-      }
-
-      // Partition subjects by kidId if they don't have one
-      if (state.subjects) {
-        let hasGlobalSubjects = false;
-        const partitionedSubjects = [];
-        state.subjects.forEach(s => {
-          if (s.emoji) {
-            delete s.emoji;
-            migrated = true;
-          }
-          if (typeof s.decayRate === 'undefined') {
-            s.decayRate = 0.5;
-            migrated = true;
-          }
-          
-          if (!s.kidId) {
-            hasGlobalSubjects = true;
-            const kidsList = state.kids || DEFAULT_STATE.kids;
-            kidsList.forEach(k => {
-              const targetKidId = k.id === "kid-aaliyah" ? "kid-eliah" : k.id;
-              if (!partitionedSubjects.some(ps => ps.kidId === targetKidId && ps.name.toLowerCase() === s.name.toLowerCase())) {
-                partitionedSubjects.push({
-                  kidId: targetKidId,
-                  name: s.name,
-                  color: s.color,
-                  decayRate: s.decayRate
-                });
-              }
-            });
-          } else {
-            if (s.kidId === "kid-aaliyah") {
-              s.kidId = "kid-eliah";
-              migrated = true;
-            }
-            partitionedSubjects.push(s);
-          }
-        });
-        if (hasGlobalSubjects) {
-          state.subjects = partitionedSubjects;
-          migrated = true;
-        }
-      }
-
-      if (typeof state.theme === 'undefined') {
-        state.theme = 'light';
-        migrated = true;
-      }
-      if (typeof state.quizView === 'undefined') {
-        state.quizView = 'list';
-        migrated = true;
-      }
+      const migrated = runMigrations();
       if (migrated) {
         saveState();
       }
@@ -257,10 +263,140 @@ function loadState() {
   }
 }
 
+// --- Supabase Config & Syncing ---
+const SUPABASE_URL = "https://gtvizvzuslhebcpmplgq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0dml6dnp1c2xoZWJjcG1wbGdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjI1MDIsImV4cCI6MjA4OTkzODUwMn0.bh3O_6t-QS3gRfh6S_j97QXdoRasdTN1OZW3hDTJBkQ";
+const PROFILE_KEY = "scholastic";
+
+let supabase = null;
+if (window.supabase) {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+function updateSyncStatus(status) {
+  const dot = document.getElementById('sync-status');
+  if (!dot) return;
+  
+  dot.classList.remove('syncing', 'synced', 'error', 'offline');
+  
+  if (status === 'syncing') {
+    dot.classList.add('syncing');
+    dot.title = "Syncing with cloud...";
+  } else if (status === 'synced') {
+    dot.classList.add('synced');
+    dot.title = "All changes synced to cloud";
+  } else if (status === 'error') {
+    dot.classList.add('error');
+    dot.title = "Sync error! Using offline data";
+  } else if (status === 'offline') {
+    dot.classList.add('offline');
+    dot.title = "Offline. Changes will sync when online";
+  }
+}
+
+async function forceSaveStateToSupabase() {
+  if (!supabase) return;
+  updateSyncStatus('syncing');
+  try {
+    const { error } = await supabase
+      .from('toprank_state')
+      .upsert({
+        profile_key: PROFILE_KEY,
+        state_json: state,
+        updated_at: state.updatedAt || new Date().toISOString()
+      });
+    if (error) throw error;
+    updateSyncStatus('synced');
+  } catch (e) {
+    console.error("Supabase force sync failed:", e);
+    updateSyncStatus(navigator.onLine ? 'error' : 'offline');
+    throw e;
+  }
+}
+
+let syncTimeout = null;
+
 // --- Save State ---
 function saveState() {
+  state.updatedAt = new Date().toISOString();
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+  
+  if (supabase) {
+    if (syncTimeout) clearTimeout(syncTimeout);
+    updateSyncStatus('syncing');
+    syncTimeout = setTimeout(async () => {
+      try {
+        const { error } = await supabase
+          .from('toprank_state')
+          .upsert({
+            profile_key: PROFILE_KEY,
+            state_json: state,
+            updated_at: state.updatedAt
+          });
+        if (error) throw error;
+        updateSyncStatus('synced');
+      } catch (e) {
+        console.error("Supabase sync failed:", e);
+        updateSyncStatus(navigator.onLine ? 'error' : 'offline');
+      }
+    }, 1000);
+  }
 }
+
+async function syncWithSupabase() {
+  if (!supabase) {
+    updateSyncStatus('offline');
+    return;
+  }
+  
+  updateSyncStatus('syncing');
+  try {
+    const { data: list, error } = await supabase
+      .from('toprank_state')
+      .select('state_json, updated_at')
+      .eq('profile_key', PROFILE_KEY);
+      
+    if (error) throw error;
+    
+    if (list && list.length > 0) {
+      const data = list[0];
+      const serverState = data.state_json;
+      const serverUpdatedAt = serverState.updatedAt || data.updated_at;
+      const localUpdatedAt = state.updatedAt;
+      
+      if (!localUpdatedAt || new Date(serverUpdatedAt) > new Date(localUpdatedAt)) {
+        console.log("Loading newer state from Supabase...", serverUpdatedAt);
+        state = serverState;
+        runMigrations();
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+        renderAll();
+        populateSubjectDropdowns();
+        updateSyncStatus('synced');
+      } else if (new Date(localUpdatedAt) > new Date(serverUpdatedAt)) {
+        console.log("Local state is newer. Uploading to Supabase...", localUpdatedAt);
+        await forceSaveStateToSupabase();
+      } else {
+        console.log("State is already in sync.");
+        updateSyncStatus('synced');
+      }
+    } else {
+      console.log("No server state found. Seeding server with local state...");
+      await forceSaveStateToSupabase();
+    }
+  } catch (e) {
+    console.error("Failed to sync with Supabase on load:", e);
+    updateSyncStatus(navigator.onLine ? 'error' : 'offline');
+  }
+}
+
+// Hook offline/online window events to update status dot
+window.addEventListener('online', () => {
+  console.log("App online. Triggering sync...");
+  syncWithSupabase();
+});
+window.addEventListener('offline', () => {
+  updateSyncStatus('offline');
+});
 
 // --- Log Activity Utility ---
 function logActivity(kidId, type, message) {
@@ -1821,6 +1957,7 @@ btnPwaClose.addEventListener('click', () => {
 loadState();
 renderAll();
 populateSubjectDropdowns();
+syncWithSupabase();
 
 // Theme Toggle Event Listener
 const btnThemeToggle = document.getElementById('btn-theme-toggle');
