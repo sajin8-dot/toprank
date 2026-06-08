@@ -236,6 +236,7 @@ const elOffsetDisplay = document.getElementById('offset-display');
 
 // Active filter state for the Journal Tab
 let currentJournalFilter = "All";
+let editingSubjectName = null;
 
 // --- Navigation Tabs Handling ---
 document.querySelectorAll('.nav-tab').forEach(tabBtn => {
@@ -790,8 +791,15 @@ function renderMasterSubjects() {
         <span>${subj.name}</span>
         <span style="display:inline-block; width: 14px; height: 14px; border-radius: 50%; background-color: ${subj.color};"></span>
       </div>
-      <button class="btn btn-danger btn-sm btn-round-sm btn-delete-subject" data-name="${subj.name}">Delete 🗑️</button>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-secondary btn-sm btn-round-sm btn-edit-subject" data-name="${subj.name}">Edit ✏️</button>
+        <button class="btn btn-danger btn-sm btn-round-sm btn-delete-subject" data-name="${subj.name}">Delete 🗑️</button>
+      </div>
     `;
+    
+    row.querySelector('.btn-edit-subject').addEventListener('click', () => {
+      startEditSubject(subj.name);
+    });
     
     row.querySelector('.btn-delete-subject').addEventListener('click', () => {
       if (confirm(`Are you sure you want to remove '${subj.name}' from the Master List? You will no longer be able to select it for new lessons.`)) {
@@ -801,6 +809,43 @@ function renderMasterSubjects() {
 
     elMasterSubjectsList.appendChild(row);
   });
+}
+
+// Start editing a subject's emoji & color
+function startEditSubject(subjName) {
+  const subj = state.subjects.find(s => s.name === subjName);
+  if (!subj) return;
+  
+  editingSubjectName = subjName;
+  
+  document.getElementById('subject-form-title').textContent = `Edit Subject: ${subj.name}`;
+  document.getElementById('new-subject-name').value = subj.name;
+  document.getElementById('new-subject-name').disabled = true; // Name cannot be edited to avoid corruption
+  document.getElementById('new-subject-emoji').value = subj.emoji;
+  
+  // Select color radio swatch
+  const colorRadio = formAddSubject.querySelector(`input[name="subj-color"][value="${subj.color}"]`);
+  if (colorRadio) {
+    colorRadio.checked = true;
+  }
+  
+  document.getElementById('btn-submit-subject').textContent = 'Save Changes 💾';
+  document.getElementById('btn-cancel-subject-edit').style.display = 'inline-block';
+}
+
+// Cancel subject editing
+function cancelEditSubject() {
+  editingSubjectName = null;
+  document.getElementById('subject-form-title').textContent = 'Add New Master Subject';
+  document.getElementById('new-subject-name').value = '';
+  document.getElementById('new-subject-name').disabled = false;
+  document.getElementById('new-subject-emoji').value = '';
+  
+  const defaultRadio = formAddSubject.querySelector('input[name="subj-color"]');
+  if (defaultRadio) defaultRadio.checked = true;
+  
+  document.getElementById('btn-submit-subject').textContent = 'Add Subject 🎨';
+  document.getElementById('btn-cancel-subject-edit').style.display = 'none';
 }
 
 // 7. Render Activity Log
@@ -1114,22 +1159,40 @@ formUpdateRatings.addEventListener('submit', (e) => {
   renderAll();
 });
 
-// Form Submission: Add Master Subject
+// Form Submission: Add/Edit Master Subject
 formAddSubject.addEventListener('submit', (e) => {
   e.preventDefault();
   
   const name = document.getElementById('new-subject-name').value.trim();
   const emoji = document.getElementById('new-subject-emoji').value.trim();
-  
-  // Read checked color radio
   const colorRadio = formAddSubject.querySelector('input[name="subj-color"]:checked');
   const color = colorRadio ? colorRadio.value : '#ff6b6b';
 
-  addSubject(name, emoji, color);
-  
-  formAddSubject.reset();
-  // Ensure the radio remains checked after form reset
-  if (colorRadio) colorRadio.checked = true;
+  if (editingSubjectName) {
+    // Edit mode
+    const subj = state.subjects.find(s => s.name === editingSubjectName);
+    if (subj) {
+      subj.emoji = emoji;
+      subj.color = color;
+      
+      logActivity(state.currentKidId, "subject", `🎨 Subject '${editingSubjectName}' updated (Emoji: ${emoji}, Color: ${color}).`);
+      
+      saveState();
+      cancelEditSubject();
+      renderAll();
+    }
+  } else {
+    // Add mode
+    addSubject(name, emoji, color);
+    formAddSubject.reset();
+    if (colorRadio) colorRadio.checked = true;
+    renderAll();
+  }
+});
+
+// Hook cancel button for subject editing
+document.getElementById('btn-cancel-subject-edit').addEventListener('click', () => {
+  cancelEditSubject();
 });
 
 // Clear Logs

@@ -115,9 +115,9 @@
           </div>
           
           <div class="subjects-management-layout">
-            <!-- Form to Add Subject -->
+            <!-- Form to Add/Edit Subject -->
             <form id="add-subject-form" class="card form-card">
-              <h4>Add New Master Subject</h4>
+              <h4 id="subject-form-title">Add New Master Subject</h4>
               <div class="form-group">
                 <label for="new-subject-name">Subject Name</label>
                 <input type="text" id="new-subject-name" placeholder="e.g. Geography, Hindi, Maths" required>
@@ -139,7 +139,10 @@
                   <label class="color-swatch" style="background-color: #ff9ff3;"><input type="radio" name="subj-color" value="#ff9ff3"></label>
                 </div>
               </div>
-              <button type="submit" class="btn btn-primary btn-block">Add Subject 🎨</button>
+              <div class="form-actions-row" style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;" id="btn-submit-subject">Add Subject 🎨</button>
+                <button type="button" class="btn btn-secondary" style="display: none;" id="btn-cancel-subject-edit">Cancel ❌</button>
+              </div>
             </form>
 
             <!-- Active Subjects List -->
