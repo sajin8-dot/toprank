@@ -1798,3 +1798,113 @@ body.dark .menu-item,
 body.dark .menu-profile-name {
   color: #e0e0e0;
 }
+
+/* --- MOBILE RESPONSIVENESS MEDIA OVERRIDES --- */
+@media (max-width: 600px) {
+  body {
+    padding: 12px;
+  }
+
+  .app-container {
+    padding: 0;
+  }
+
+  /* Header mobile adjustment to prevent horizontal bleeding */
+  .app-header {
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .app-header .logo-area {
+    flex: 1 1 auto;
+    gap: 8px;
+  }
+
+  .logo-text h1 {
+    font-size: 1.4rem;
+  }
+
+  .logo-text .tagline {
+    font-size: 0.75rem;
+  }
+
+  .app-header .header-controls {
+    flex: 1 1 100%;
+    justify-content: space-between;
+    border-top: 1.5px solid var(--border-light);
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+
+  .time-travel-tool {
+    gap: 4px;
+  }
+
+  .time-travel-tool button {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+
+  /* Kid stats dashboard */
+  .kid-stats-card {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px 8px;
+    padding: 12px 0;
+    text-align: center;
+  }
+
+  .kid-summary-meta {
+    grid-column: span 3;
+    margin-bottom: 4px;
+  }
+
+  .kid-summary-meta h2 {
+    font-size: 1.4rem;
+  }
+
+  .stat-box {
+    padding: 6px 4px;
+  }
+
+  .stat-val {
+    font-size: 1.3rem;
+  }
+
+  .stat-val-subject {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Pane headers */
+  .pane-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .pane-header h3 {
+    font-size: 1.2rem;
+  }
+
+  /* Subsection list rows */
+  .subsection-item-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .subsection-rating-box {
+    justify-content: space-between;
+    margin-top: 4px;
+    border-top: 1px dashed var(--border-light);
+    padding-top: 4px;
+  }
+
+  /* Modals sizing on extra small devices */
+  .modal-content {
+    padding: 16px;
+  }
+}
