@@ -1331,7 +1331,7 @@ document.getElementById('btn-add-subsection-field').addEventListener('click', ()
   const row = document.createElement('div');
   row.className = 'subsection-input-row';
   row.innerHTML = `
-    <input type="text" class="subsection-name-input" placeholder="e.g. Map Marking" required>
+    <input type="text" class="subsection-name-input" placeholder="e.g. Map Marking">
     <button type="button" class="btn-remove-row">&times;</button>
   `;
   
@@ -1364,8 +1364,12 @@ formAddLesson.addEventListener('submit', (e) => {
   });
 
   if (subSections.length === 0) {
-    alert("Please add at least one sub-section!");
-    return;
+    // If no subsections are provided, default to a single "General" subsection
+    subSections.push({
+      name: "General",
+      baseRating: 0,
+      lastUpdatedDate: new Date().toISOString()
+    });
   }
 
   const newLesson = {
@@ -1387,11 +1391,11 @@ formAddLesson.addEventListener('submit', (e) => {
   formAddLesson.reset();
   subsectionContainer.innerHTML = `
     <div class="subsection-input-row">
-      <input type="text" class="subsection-name-input" placeholder="e.g. Meanings" required value="Meanings">
+      <input type="text" class="subsection-name-input" placeholder="e.g. Meanings">
       <button type="button" class="btn-remove-row" style="display:none;">&times;</button>
     </div>
     <div class="subsection-input-row">
-      <input type="text" class="subsection-name-input" placeholder="e.g. Question & Answers" required value="Question & Answers">
+      <input type="text" class="subsection-name-input" placeholder="e.g. Question & Answers">
       <button type="button" class="btn-remove-row" style="display:none;">&times;</button>
     </div>
   `;
