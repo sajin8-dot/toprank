@@ -1593,7 +1593,21 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Update Photo button triggers hidden file input
+// Shared helper: reads a File object and saves it as the current kid's photo
+function handlePhotoFile(file, inputEl) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    if (!state.kidPhotos) state.kidPhotos = {};
+    state.kidPhotos[state.currentKidId] = ev.target.result;
+    saveState();
+    renderKidSelector();
+  };
+  reader.readAsDataURL(file);
+  if (inputEl) inputEl.value = ''; // reset so same file/photo can be re-used
+}
+
+// "Choose from Library" — standard gallery/file picker
 const elUpdatePhoto = document.getElementById('btn-menu-update-photo');
 const elPhotoUploader = document.getElementById('profile-photo-uploader');
 if (elUpdatePhoto && elPhotoUploader) {
@@ -1601,20 +1615,21 @@ if (elUpdatePhoto && elPhotoUploader) {
     closeProfileMenu();
     elPhotoUploader.click();
   });
-
   elPhotoUploader.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      if (!state.kidPhotos) state.kidPhotos = {};
-      state.kidPhotos[state.currentKidId] = ev.target.result;
-      saveState();
-      renderKidSelector();
-    };
-    reader.readAsDataURL(file);
-    // Reset so the same file can be re-selected
-    elPhotoUploader.value = '';
+    handlePhotoFile(e.target.files[0], elPhotoUploader);
+  });
+}
+
+// "Take Photo" — opens the front-facing camera on mobile (capture="user")
+const elTakePhoto = document.getElementById('btn-menu-take-photo');
+const elCameraCapture = document.getElementById('profile-camera-capture');
+if (elTakePhoto && elCameraCapture) {
+  elTakePhoto.addEventListener('click', () => {
+    closeProfileMenu();
+    elCameraCapture.click();
+  });
+  elCameraCapture.addEventListener('change', (e) => {
+    handlePhotoFile(e.target.files[0], elCameraCapture);
   });
 }
 

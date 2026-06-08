@@ -55,10 +55,13 @@
               <!-- Rendered dynamically in app.js -->
             </div>
             <hr class="menu-divider">
-            <button class="menu-item" id="btn-menu-update-photo">Update Photo</button>
+            <div class="menu-section-title">Photo</div>
+            <button class="menu-item" id="btn-menu-take-photo">📷 Take Photo</button>
+            <button class="menu-item" id="btn-menu-update-photo">🖼️ Choose from Library</button>
           </div>
         </div>
         <input type="file" id="profile-photo-uploader" accept="image/*" style="display:none;">
+        <input type="file" id="profile-camera-capture" accept="image/*" capture="user" style="display:none;">
       </div>
     </header>
 
