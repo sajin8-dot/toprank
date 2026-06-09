@@ -398,6 +398,20 @@ window.addEventListener('offline', () => {
   updateSyncStatus('offline');
 });
 
+// Poll Supabase for updates every 30 minutes in case of changes from other devices
+setInterval(() => {
+  console.log("Scheduled 30-minute sync trigger...");
+  syncWithSupabase();
+}, 30 * 60 * 1000);
+
+// Also sync immediately when the user switches back to the tab/app
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    console.log("App focused/visible. Triggering background sync...");
+    syncWithSupabase();
+  }
+});
+
 // --- Log Activity Utility ---
 function logActivity(kidId, type, message) {
   const logEntry = {
