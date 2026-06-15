@@ -1994,8 +1994,13 @@ function renderStreakCalendar() {
   }
 
   const badgeClass = streak === 0 ? 'streak-count-badge streak-zero' : 'streak-count-badge';
-  const streakNum = streak > 0 ? `<strong>${streak}</strong>` : '';
-  const streakText = streak === 0 ? 'No streak' : streak === 1 ? `${streakNum} day streak` : `${streakNum} day streak`;
+  const streakText = streak === 0
+    ? 'START YOUR STREAK!'
+    : streak === 1
+      ? '🔥 <strong>1</strong> DAY STREAK!'
+      : streak < 7
+        ? `🔥 <strong>${streak}</strong> DAY STREAK!`
+        : `🔥 <strong>${streak}</strong> DAY STREAK!! 🏆`;
 
   section.innerHTML = `
     <div class="streak-calendar-inner">

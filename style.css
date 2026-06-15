@@ -329,23 +329,29 @@ h1, h2, h3, h4 {
   padding-left: 6px;
 }
 .streak-count-badge {
-  font-size: 0.72rem;
-  font-weight: 500;
-  padding: 3px 10px;
-  border-radius: 12px;
-  background: var(--color-strong);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f9ca24, #f0932b);
   color: #fff;
   display: inline-flex;
-  align-items: baseline;
-  gap: 3px;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(240,147,43,0.4);
 }
 .streak-count-badge strong {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1;
 }
 .streak-count-badge.streak-zero {
-  background: #95a5a6;
+  background: linear-gradient(135deg, #b2bec3, #95a5a6);
+  box-shadow: none;
+  letter-spacing: 0.04em;
 }
 .streak-days-scroll {
   overflow-x: auto;
