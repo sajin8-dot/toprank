@@ -269,19 +269,19 @@ function updateSyncStatus(status) {
   if (status === 'syncing') {
     pill.classList.add('syncing');
     pill.title = "Syncing with cloud...";
-    if (label) label.textContent = "Supabase syncing…";
+    if (label) label.textContent = "syncing";
   } else if (status === 'synced') {
     pill.classList.add('synced');
     pill.title = "All changes synced to cloud";
-    if (label) label.textContent = "Supabase sync is working";
+    if (label) label.textContent = "synced";
   } else if (status === 'error') {
     pill.classList.add('error');
     pill.title = "Sync error! Using offline data";
-    if (label) label.textContent = "Supabase sync error";
+    if (label) label.textContent = "sync error";
   } else if (status === 'offline') {
     pill.classList.add('offline');
     pill.title = "Offline. Changes will sync when online";
-    if (label) label.textContent = "Supabase offline";
+    if (label) label.textContent = "offline";
   }
 }
 
