@@ -4,7 +4,9 @@
 
 // --- Constants & Config ---
 const DECAY_RATE = 0.5; // points decayed per day
-const LOCAL_STORAGE_KEY = 'toprank_state_v1';
+// localStorage is intentionally NOT used for app state — all data lives in Supabase only.
+// Clear any legacy cached state from older versions of the app.
+['toprank_state_v1'].forEach(k => localStorage.removeItem(k));
 
 // --- Default Seed Data ---
 const DEFAULT_STATE = {
@@ -239,28 +241,12 @@ function runMigrations() {
 }
 
 // --- Load State ---
+// State is loaded exclusively from Supabase via syncWithSupabase() on startup.
+// This function just sets the in-memory default so the UI can render while the
+// async fetch is in progress.
 function loadState() {
-  const data = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (data) {
-    try {
-      state = JSON.parse(data);
-      const migrated = runMigrations();
-      if (migrated) {
-        saveState();
-      }
-      applyTheme();
-    } catch (e) {
-      console.error("Error parsing localStorage state, resetting...", e);
-      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-      saveState();
-      applyTheme();
-    }
-  } else {
-    // Fresh seed
-    state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-    saveState();
-    applyTheme();
-  }
+  state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  applyTheme();
 }
 
 // --- Supabase Config & Syncing ---
@@ -322,10 +308,10 @@ async function forceSaveStateToSupabase() {
 let syncTimeout = null;
 
 // --- Save State ---
+// Writes directly to Supabase only (no localStorage). Debounced by 1s.
 function saveState() {
   state.updatedAt = new Date().toISOString();
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-  
+
   if (supabaseClient) {
     if (syncTimeout) clearTimeout(syncTimeout);
     updateSyncStatus('syncing');
@@ -353,43 +339,29 @@ async function syncWithSupabase() {
     updateSyncStatus('offline');
     return;
   }
-  
+
   updateSyncStatus('syncing');
   try {
     const { data: list, error } = await supabaseClient
       .from('toprank_state')
       .select('state_json, updated_at')
       .eq('profile_key', PROFILE_KEY);
-      
+
     if (error) throw error;
-    
+
     if (list && list.length > 0) {
-      const data = list[0];
-      const serverState = data.state_json;
-      const serverUpdatedAt = serverState.updatedAt || data.updated_at;
-      const localUpdatedAt = state.updatedAt;
-      
-      if (!localUpdatedAt || new Date(serverUpdatedAt) > new Date(localUpdatedAt)) {
-        console.log("Loading newer state from Supabase...", serverUpdatedAt);
-        state = serverState;
-        runMigrations();
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-        renderAll();
-        populateSubjectDropdowns();
-        updateSyncStatus('synced');
-      } else if (new Date(localUpdatedAt) > new Date(serverUpdatedAt)) {
-        console.log("Local state is newer. Uploading to Supabase...", localUpdatedAt);
-        await forceSaveStateToSupabase();
-      } else {
-        console.log("State is already in sync.");
-        updateSyncStatus('synced');
-      }
+      console.log("Loading state from Supabase...");
+      state = list[0].state_json;
+      runMigrations();
+      renderAll();
+      populateSubjectDropdowns();
+      updateSyncStatus('synced');
     } else {
-      console.log("No server state found. Seeding server with local state...");
+      console.log("No server state found. Seeding Supabase with default state...");
       await forceSaveStateToSupabase();
     }
   } catch (e) {
-    console.error("Failed to sync with Supabase on load:", e);
+    console.error("Failed to load state from Supabase:", e);
     updateSyncStatus(navigator.onLine ? 'error' : 'offline');
   }
 }
