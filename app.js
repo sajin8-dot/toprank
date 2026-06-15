@@ -929,14 +929,17 @@ function renderJournal() {
       }
 
       subSectionsHtml += `
-        <div class="subsection-item-row" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; margin-bottom: 4px;">
+        <div class="subsection-item-row">
           <div class="subsection-label">
             <span>${sub.name}</span>
             ${decayInfoHtml}
           </div>
-          <div class="subsection-rating-box" style="display: flex; align-items: center; gap: 8px;">
-            <span class="subsection-score-text">${decayedRating.toFixed(1)}/10</span>
-            <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-quick-bump" data-lesson-id="${lesson.id}" data-sub-name="${sub.name}" title="Quick Review (Practice +1)" style="width: 24px; height: 24px; font-size: 0.75rem;">＋</button>
+          <div class="subsection-rating-box">
+            <input type="range" class="inline-proficiency-slider" min="0" max="10" step="1"
+              value="${Math.round(decayedRating)}"
+              data-lesson-id="${lesson.id}" data-sub-name="${sub.name}"
+              title="Set proficiency">
+            <span class="subsection-score-text inline-score-val ${subBadgeClass}">${Math.round(decayedRating)}</span>
           </div>
         </div>
       `;
@@ -1004,13 +1007,19 @@ function renderJournal() {
       }
     });
 
-    // Hook quick bump buttons
-    card.querySelectorAll('.btn-quick-bump').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const lessonId = btn.getAttribute('data-lesson-id');
-        const subName = btn.getAttribute('data-sub-name');
-        quickBumpRating(lessonId, subName);
+    // Hook inline proficiency sliders
+    card.querySelectorAll('.inline-proficiency-slider').forEach(slider => {
+      const scoreEl = slider.nextElementSibling;
+      slider.addEventListener('input', () => {
+        const val = parseInt(slider.value);
+        scoreEl.textContent = val;
+        scoreEl.className = 'subsection-score-text inline-score-val ' + getScoreBadgeClass(val);
+      });
+      slider.addEventListener('change', () => {
+        const lessonId = slider.getAttribute('data-lesson-id');
+        const subName = slider.getAttribute('data-sub-name');
+        const val = parseInt(slider.value);
+        setSubsectionRating(lessonId, subName, val);
       });
     });
 
@@ -1388,16 +1397,12 @@ function deleteQuiz(quizId) {
   renderAll();
 }
 
-// Quick Bump Rating (Practice +1)
-function quickBumpRating(lessonId, subName) {
+// Set subsection rating directly (from inline slider)
+function setSubsectionRating(lessonId, subName, newVal) {
   const lesson = state.lessons.find(l => l.id === lessonId);
   if (!lesson) return;
   const sub = lesson.subSections.find(s => s.name === subName);
   if (!sub) return;
-
-  const decayedVal = getDecayedRating(lesson.subjectName, sub.baseRating, sub.lastUpdatedDate, lesson.kidId);
-  const newVal = Math.min(10, Math.floor(decayedVal) + 1);
-  const oldDecayed = decayedVal;
 
   sub.baseRating = newVal;
   sub.lastUpdatedDate = new Date().toISOString();
@@ -1405,7 +1410,7 @@ function quickBumpRating(lessonId, subName) {
   logActivity(
     state.currentKidId,
     "rating",
-    `Learned ${sub.name} under ${lesson.topicName} proficiency increased to ${newVal}/10`
+    `${sub.name} under ${lesson.topicName} set to ${newVal}/10`
   );
 
   saveState();

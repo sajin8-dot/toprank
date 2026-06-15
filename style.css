@@ -996,6 +996,46 @@ h1, h2, h3, h4 {
   font-size: 0.95rem;
 }
 
+.inline-score-val {
+  min-width: 24px;
+  text-align: center;
+}
+.inline-score-val.weak   { color: var(--color-weak); }
+.inline-score-val.medium { color: var(--color-medium); }
+.inline-score-val.strong { color: var(--color-strong); }
+
+/* Inline proficiency slider */
+.inline-proficiency-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-light);
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.inline-proficiency-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--brand-pink);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.inline-proficiency-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--brand-pink);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
 .lesson-card-actions {
   display: flex;
   justify-content: flex-end;
