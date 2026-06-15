@@ -479,10 +479,6 @@ const formUpdateRatings = document.getElementById('update-ratings-form');
 const formAddSubject = document.getElementById('add-subject-form');
 
 // Simulator buttons
-const btnTimeTravel1 = document.getElementById('btn-time-travel-1');
-const btnTimeTravel5 = document.getElementById('btn-time-travel-5');
-const btnTimeTravelReset = document.getElementById('btn-time-travel-reset');
-const elOffsetDisplay = document.getElementById('offset-display');
 
 // Active filter state for the Journal Tab
 let currentJournalFilter = "All";
@@ -1935,36 +1931,6 @@ if (btnMenuLock) {
   });
 }
 
-// --- TIME TRAVEL SIMULATOR ---
-function updateSimulatorDisplay() {
-  if (state.dateOffset && state.dateOffset > 0) {
-    elOffsetDisplay.textContent = `+${state.dateOffset} Day${state.dateOffset > 1 ? 's' : ''}`;
-    elOffsetDisplay.style.display = 'inline-block';
-  } else {
-    elOffsetDisplay.style.display = 'none';
-  }
-}
-
-btnTimeTravel1.addEventListener('click', () => {
-  state.dateOffset += 1;
-  saveState();
-  updateSimulatorDisplay();
-  renderAll();
-});
-
-btnTimeTravel5.addEventListener('click', () => {
-  state.dateOffset += 5;
-  saveState();
-  updateSimulatorDisplay();
-  renderAll();
-});
-
-btnTimeTravelReset.addEventListener('click', () => {
-  state.dateOffset = 0;
-  saveState();
-  updateSimulatorDisplay();
-  renderAll();
-});
 
 // --- STREAK CALENDAR ---
 function renderStreakCalendar() {
@@ -2046,7 +2012,6 @@ function renderAll() {
   renderQuizzes();
   renderMasterSubjects();
   renderActivityLog();
-  updateSimulatorDisplay();
 }
 
 // --- PWA SERVICE WORKER REGISTRATION ---
