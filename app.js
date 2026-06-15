@@ -274,23 +274,28 @@ if (window.supabase) {
 }
 
 function updateSyncStatus(status) {
-  const dot = document.getElementById('sync-status');
-  if (!dot) return;
-  
-  dot.classList.remove('syncing', 'synced', 'error', 'offline');
-  
+  const pill = document.getElementById('sync-status');
+  if (!pill) return;
+
+  pill.classList.remove('syncing', 'synced', 'error', 'offline');
+  const label = pill.querySelector('.sync-pill-label');
+
   if (status === 'syncing') {
-    dot.classList.add('syncing');
-    dot.title = "Syncing with cloud...";
+    pill.classList.add('syncing');
+    pill.title = "Syncing with cloud...";
+    if (label) label.textContent = "Supabase syncing…";
   } else if (status === 'synced') {
-    dot.classList.add('synced');
-    dot.title = "All changes synced to cloud";
+    pill.classList.add('synced');
+    pill.title = "All changes synced to cloud";
+    if (label) label.textContent = "Supabase sync is working";
   } else if (status === 'error') {
-    dot.classList.add('error');
-    dot.title = "Sync error! Using offline data";
+    pill.classList.add('error');
+    pill.title = "Sync error! Using offline data";
+    if (label) label.textContent = "Supabase sync error";
   } else if (status === 'offline') {
-    dot.classList.add('offline');
-    dot.title = "Offline. Changes will sync when online";
+    pill.classList.add('offline');
+    pill.title = "Offline. Changes will sync when online";
+    if (label) label.textContent = "Supabase offline";
   }
 }
 
@@ -1989,10 +1994,80 @@ btnTimeTravelReset.addEventListener('click', () => {
   renderAll();
 });
 
+// --- STREAK CALENDAR ---
+function renderStreakCalendar() {
+  const section = document.getElementById('streak-calendar-section');
+  if (!section) return;
+
+  const kid = state.kids.find(k => k.id === state.currentKidId);
+  if (!kid) return;
+
+  const DAYS = 30;
+  const today = getSimulatedDate();
+  today.setHours(0, 0, 0, 0);
+
+  // Build a set of date strings (YYYY-MM-DD) that have log activity for this kid
+  const activeDates = new Set();
+  (state.logs || []).forEach(log => {
+    if (log.kidId !== kid.id) return;
+    const d = new Date(log.timestamp);
+    d.setHours(0, 0, 0, 0);
+    activeDates.add(d.toISOString().slice(0, 10));
+  });
+
+  // Calculate current streak (consecutive days ending today or yesterday)
+  let streak = 0;
+  for (let i = 0; i < DAYS; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    if (activeDates.has(d.toISOString().slice(0, 10))) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  // Build day cells (oldest → newest, left → right)
+  let dotsHTML = '';
+  for (let i = DAYS - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const isToday = i === 0;
+    const hasActivity = activeDates.has(key);
+    const dayLabel = d.getDate();
+    const monthLabel = d.toLocaleDateString(undefined, { month: 'short' });
+    const showLabel = isToday || d.getDate() === 1;
+
+    let dotClass = 'streak-day-dot';
+    if (hasActivity) dotClass += ' has-activity';
+    if (isToday) dotClass += ' is-today';
+
+    dotsHTML += `
+      <div class="streak-day" title="${key}">
+        <div class="${dotClass}"></div>
+        <span class="streak-day-label${isToday ? ' is-today-label' : ''}">${showLabel ? (d.getDate() === 1 ? monthLabel : 'Today') : ''}</span>
+      </div>`;
+  }
+
+  const badgeClass = streak === 0 ? 'streak-count-badge streak-zero' : 'streak-count-badge';
+  const streakText = streak === 1 ? '1 day streak' : streak > 1 ? `${streak} day streak` : 'No streak';
+
+  section.innerHTML = `
+    <div class="streak-calendar-inner">
+      <div class="streak-header">
+        <span class="streak-title">🔥 Learning Streak — ${kid.name}</span>
+        <span class="${badgeClass}">${streakText}</span>
+      </div>
+      <div class="streak-days-row">${dotsHTML}</div>
+    </div>`;
+}
+
 // --- RENDER ALL METHOD ---
 function renderAll() {
   renderKidSelector();
   renderKidStats();
+  renderStreakCalendar();
   renderSubjectOverviewAccordion();
   renderJournal();
   renderQuizzes();
