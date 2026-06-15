@@ -2003,7 +2003,7 @@ function renderStreakCalendar() {
         <span class="streak-title">🔥 Learning Streak — ${kid.name}</span>
         <span class="${badgeClass}">${streakText}</span>
       </div>
-      <div class="streak-days-row">${dotsHTML}</div>
+      <div class="streak-days-scroll"><div class="streak-days-row">${dotsHTML}</div></div>
     </div>`;
 }
 

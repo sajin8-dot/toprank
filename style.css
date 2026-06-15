@@ -346,16 +346,19 @@ h1, h2, h3, h4 {
 .streak-count-badge.streak-zero {
   background: #95a5a6;
 }
-.streak-days-row {
-  display: flex;
-  align-items: flex-start; /* keep dots aligned even when labels appear */
-  gap: 3px;
+.streak-days-scroll {
   overflow-x: auto;
-  overflow-y: visible; /* let the today ring stroke breathe */
+  overflow-y: visible;
   scrollbar-width: none;
-  padding: 3px 2px 4px; /* top padding so ring isn't clipped */
 }
-.streak-days-row::-webkit-scrollbar { display: none; }
+.streak-days-scroll::-webkit-scrollbar { display: none; }
+.streak-days-row {
+  display: inline-flex; /* shrink-wrap so scroll works */
+  align-items: flex-start;
+  gap: 3px;
+  padding: 4px 2px 4px 2px; /* breathing room for ring stroke */
+  min-width: 100%;
+}
 .streak-day {
   flex: 0 0 auto;
   display: flex;
@@ -1195,7 +1198,7 @@ select:focus {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 4px; /* room for the selected-state ring to breathe */
+  padding: 4px 4px 4px 6px; /* left padding prevents left-edge swatch clipping */
   overflow: visible;
 }
 
@@ -1227,9 +1230,10 @@ select:focus {
 }
 
 .color-swatch:has(input[type="radio"]:checked) {
-  border-color: var(--text-dark);
-  box-shadow: 0 0 0 2px var(--paper-white);
-  transform: scale(1.1);
+  border-color: transparent;
+  outline: 2px solid var(--text-dark);
+  outline-offset: 3px;
+  transform: scale(1.05);
 }
 
 /* Master Subjects List Card */
