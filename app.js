@@ -1999,11 +1999,15 @@ function renderStreakCalendar() {
 
   section.innerHTML = `
     <div class="streak-calendar-inner">
-      <div class="streak-header">
-        <span class="streak-title">🔥 Learning Streak — ${kid.name}</span>
-        <span class="${badgeClass}">${streakText}</span>
+      <div class="streak-title">🔥 ${kid.name}</div>
+      <div class="streak-days-scroll">
+        <div class="streak-days-row">
+          ${dotsHTML}
+          <div class="streak-inline-badge-wrap">
+            <span class="${badgeClass}">${streakText}</span>
+          </div>
+        </div>
       </div>
-      <div class="streak-days-scroll"><div class="streak-days-row">${dotsHTML}</div></div>
     </div>`;
 }
 

@@ -314,18 +314,19 @@ h1, h2, h3, h4 {
   flex-direction: column;
   justify-content: center;
 }
-.streak-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
 .streak-title {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.streak-inline-badge-wrap {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding-left: 6px;
 }
 .streak-count-badge {
   font-size: 0.72rem;
