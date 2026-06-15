@@ -353,11 +353,12 @@ h1, h2, h3, h4 {
 }
 .streak-days-scroll::-webkit-scrollbar { display: none; }
 .streak-days-row {
-  display: inline-flex; /* shrink-wrap so scroll works */
+  display: inline-flex;
   align-items: flex-start;
   gap: 3px;
-  padding: 4px 2px 4px 2px; /* breathing room for ring stroke */
+  padding: 4px 6px 4px 4px; /* right padding so today's ring on last dot isn't clipped */
   min-width: 100%;
+  box-sizing: border-box;
 }
 .streak-day {
   flex: 0 0 auto;
@@ -1198,8 +1199,8 @@ select:focus {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 4px 4px 4px 6px; /* left padding prevents left-edge swatch clipping */
-  overflow: visible;
+  padding: 6px 4px 4px 8px; /* left/top padding so outline on first swatch isn't clipped by modal's overflow-y:auto */
+  margin-left: -4px; /* compensate so swatches still align with other form fields */
 }
 
 .color-swatch {
