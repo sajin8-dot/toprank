@@ -328,19 +328,27 @@ h1, h2, h3, h4 {
   letter-spacing: 0.04em;
 }
 .streak-count-badge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 2px 9px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 3px 10px;
   border-radius: 12px;
   background: var(--color-strong);
   color: #fff;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+}
+.streak-count-badge strong {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
 }
 .streak-count-badge.streak-zero {
   background: #95a5a6;
 }
 .streak-days-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* keep dots aligned even when labels appear */
   gap: 3px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -357,10 +365,10 @@ h1, h2, h3, h4 {
 .streak-day-dot {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: var(--border-light);
   transition: background 0.2s;
-  position: relative;
 }
 .streak-day-dot.has-activity {
   background: var(--color-strong);
@@ -376,10 +384,9 @@ h1, h2, h3, h4 {
   color: var(--text-muted);
   font-family: var(--font-body);
   line-height: 1;
-}
-.streak-day-label.is-today-label {
-  color: var(--brand-pink);
-  font-weight: 700;
+  height: 0.7rem; /* fixed height so empty labels don't collapse and shift dots */
+  display: flex;
+  align-items: center;
 }
 
 .header-logo {

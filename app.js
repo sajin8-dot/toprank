@@ -2009,7 +2009,7 @@ function renderStreakCalendar() {
     const hasActivity = activeDates.has(key);
     const dayLabel = d.getDate();
     const monthLabel = d.toLocaleDateString(undefined, { month: 'short' });
-    const showLabel = isToday || d.getDate() === 1;
+    const showLabel = d.getDate() === 1; // only show month name, never "Today"
 
     let dotClass = 'streak-day-dot';
     if (hasActivity) dotClass += ' has-activity';
@@ -2018,12 +2018,13 @@ function renderStreakCalendar() {
     dotsHTML += `
       <div class="streak-day" title="${key}">
         <div class="${dotClass}"></div>
-        <span class="streak-day-label${isToday ? ' is-today-label' : ''}">${showLabel ? (d.getDate() === 1 ? monthLabel : 'Today') : ''}</span>
+        <span class="streak-day-label">${showLabel ? monthLabel : ''}</span>
       </div>`;
   }
 
   const badgeClass = streak === 0 ? 'streak-count-badge streak-zero' : 'streak-count-badge';
-  const streakText = streak === 1 ? '1 day streak' : streak > 1 ? `${streak} day streak` : 'No streak';
+  const streakNum = streak > 0 ? `<strong>${streak}</strong>` : '';
+  const streakText = streak === 0 ? 'No streak' : streak === 1 ? `${streakNum} day streak` : `${streakNum} day streak`;
 
   section.innerHTML = `
     <div class="streak-calendar-inner">
