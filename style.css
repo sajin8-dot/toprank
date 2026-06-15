@@ -315,6 +315,9 @@ h1, h2, h3, h4 {
   justify-content: center;
 }
 .streak-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -322,31 +325,24 @@ h1, h2, h3, h4 {
   letter-spacing: 0.04em;
   margin-bottom: 6px;
 }
-.streak-inline-badge-wrap {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  padding-left: 6px;
-}
 .streak-count-badge {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 4px 12px;
+  padding: 2px 8px;
   border-radius: 20px;
   background: linear-gradient(135deg, #f9ca24, #f0932b);
   color: #fff;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(240,147,43,0.4);
+  box-shadow: 0 2px 6px rgba(240,147,43,0.35);
 }
 .streak-count-badge strong {
-  font-size: 1rem;
+  font-size: 0.72rem;
   font-weight: 900;
-  line-height: 1;
 }
 .streak-count-badge.streak-zero {
   background: linear-gradient(135deg, #b2bec3, #95a5a6);
