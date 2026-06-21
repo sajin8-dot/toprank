@@ -1956,6 +1956,55 @@ if (btnMenuLock) {
 
 
 // --- PREP INDEX CHART ---
+
+// Reconstruct PREP index for a kid on a given date string (YYYY-MM-DD)
+// by reversing/applying decay from each subsection's current baseRating.
+function computeHistoricalPrep(kidId, dateStr) {
+  const target = new Date(dateStr + 'T12:00:00');
+  const kidSubjects = state.subjects.filter(s => s.kidId === kidId);
+  if (kidSubjects.length === 0) return null;
+
+  let totalScore = 0;
+  let subjectCount = 0;
+
+  kidSubjects.forEach(subj => {
+    const lessons = state.lessons.filter(l =>
+      l.kidId === kidId &&
+      l.subjectName === subj.name &&
+      new Date(l.createdDate) <= target
+    );
+    if (lessons.length === 0) return;
+
+    let subjTotal = 0, subsCount = 0;
+    const decayRate = subj.decayRate || DECAY_RATE;
+
+    lessons.forEach(lesson => {
+      lesson.subSections.forEach(sub => {
+        const lastUpdated = new Date(sub.lastUpdatedDate);
+        const diffDays = (target - lastUpdated) / (1000 * 60 * 60 * 24);
+        let rating;
+        if (diffDays >= 0) {
+          // Target is after last update: decay has happened since then
+          rating = Math.max(0, sub.baseRating - diffDays * decayRate);
+        } else {
+          // Target is before last update: reverse the decay to recover past rating
+          rating = Math.min(10, sub.baseRating + Math.abs(diffDays) * decayRate);
+        }
+        subjTotal += rating;
+        subsCount++;
+      });
+    });
+
+    if (subsCount > 0) {
+      totalScore += subjTotal / subsCount;
+      subjectCount++;
+    }
+  });
+
+  if (subjectCount === 0) return null;
+  return Math.round((totalScore / (subjectCount * 10)) * 100);
+}
+
 function renderPrepChart() {
   const container = document.getElementById('prep-chart-container');
   if (!container) return;
@@ -1963,11 +2012,25 @@ function renderPrepChart() {
   const kid = state.kids.find(k => k.id === state.currentKidId);
   if (!kid) return;
 
-  const history = (state.prepHistory && state.prepHistory[kid.id]) || {};
-  const entries = Object.entries(history).sort(([a], [b]) => a.localeCompare(b));
+  // Collect unique dates from activity logs + stored prepHistory
+  const dateSet = new Set();
+
+  (state.logs || []).forEach(log => {
+    if (log.kidId === kid.id) dateSet.add(log.timestamp.slice(0, 10));
+  });
+  const stored = (state.prepHistory && state.prepHistory[kid.id]) || {};
+  Object.keys(stored).forEach(d => dateSet.add(d));
+  // Always include today
+  dateSet.add(new Date().toISOString().slice(0, 10));
+
+  // Compute PREP for each date
+  const entries = Array.from(dateSet)
+    .sort()
+    .map(date => [date, computeHistoricalPrep(kid.id, date)])
+    .filter(([, v]) => v !== null);
 
   if (entries.length < 2) {
-    container.innerHTML = `<p class="card-hint" style="padding:12px 0; text-align:center; color:var(--text-muted); font-size:0.85rem;">Keep studying — chart will appear once there are at least 2 days of data.</p>`;
+    container.innerHTML = `<p class="card-hint" style="padding:12px 0; text-align:center; color:var(--text-muted); font-size:0.85rem;">No historical data found. Scores will appear here as you log activity.</p>`;
     return;
   }
 
@@ -1979,7 +2042,7 @@ function renderPrepChart() {
   const maxV = Math.min(100, Math.max(...vals) + 10);
 
   const xScale = i => PL + (i / (entries.length - 1)) * iW;
-  const yScale = v => PT + iH - ((v - minV) / (maxV - minV)) * iH;
+  const yScale = v => PT + iH - ((v - minV) / (maxV - minV || 1)) * iH;
 
   // Y gridlines
   let gridLines = '';
@@ -1989,22 +2052,19 @@ function renderPrepChart() {
     gridLines += `<text x="${PL - 4}" y="${y + 4}" text-anchor="end" font-size="9" fill="var(--text-muted)">${v}</text>`;
   });
 
-  // Line path
-  const points = entries.map(([, v], i) => `${xScale(i)},${yScale(v)}`).join(' ');
   const pathD = entries.map(([, v], i) => `${i === 0 ? 'M' : 'L'}${xScale(i)},${yScale(v)}`).join(' ');
-
-  // Fill area under line
   const fillD = `${pathD} L${xScale(entries.length - 1)},${PT + iH} L${xScale(0)},${PT + iH} Z`;
 
-  // Dots + tooltips
+  // Dots with tooltip
   let dots = '';
   entries.forEach(([date, v], i) => {
     const x = xScale(i), y = yScale(v);
-    const label = new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    dots += `<circle cx="${x}" cy="${y}" r="3.5" fill="var(--brand-pink)" stroke="#fff" stroke-width="1.5"><title>${label}: ${v}%</title></circle>`;
+    const label = new Date(date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const isToday = date === new Date().toISOString().slice(0, 10);
+    dots += `<circle cx="${x}" cy="${y}" r="${isToday ? 5 : 3.5}" fill="${isToday ? 'var(--brand-pink)' : subjectColor}" stroke="#fff" stroke-width="1.5"><title>${label}: ${v}%</title></circle>`;
   });
 
-  // X axis date labels (show first, last, and ~3 in between)
+  // X axis labels: first, last, ~3 in between
   let xLabels = '';
   const labelIndices = new Set([0, entries.length - 1]);
   if (entries.length > 4) {
@@ -2013,7 +2073,7 @@ function renderPrepChart() {
   }
   labelIndices.forEach(i => {
     const [date] = entries[i];
-    const label = new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const label = new Date(date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     xLabels += `<text x="${xScale(i)}" y="${H - 4}" text-anchor="middle" font-size="9" fill="var(--text-muted)">${label}</text>`;
   });
 
@@ -2025,13 +2085,13 @@ function renderPrepChart() {
   container.innerHTML = `
     <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;overflow:visible;">
       <defs>
-        <linearGradient id="prepFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${subjectColor}" stop-opacity="0.25"/>
+        <linearGradient id="prepFill_${kid.id}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${subjectColor}" stop-opacity="0.3"/>
           <stop offset="100%" stop-color="${subjectColor}" stop-opacity="0.02"/>
         </linearGradient>
       </defs>
       ${gridLines}
-      <path d="${fillD}" fill="url(#prepFill)"/>
+      <path d="${fillD}" fill="url(#prepFill_${kid.id})"/>
       <path d="${pathD}" fill="none" stroke="${subjectColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
       ${dots}
       ${xLabels}
