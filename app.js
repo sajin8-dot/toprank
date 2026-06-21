@@ -712,14 +712,19 @@ function renderKidStats() {
   const kidLessons = state.lessons.filter(l => l.kidId === kid.id);
   const activeQuizzes = state.quizzes.filter(q => q.kidId === kid.id);
   
-  // Calculate overall preparation index as a percentage across all kid's customized subjects
+  // Calculate overall preparation index — only count subjects that have lessons,
+  // matching the chart's computeHistoricalPrep which also excludes lesson-less subjects.
   const kidSubjects = state.subjects.filter(s => s.kidId === kid.id);
+  const kidSubjectsWithLessons = kidSubjects.filter(s =>
+    state.lessons.some(l => l.kidId === kid.id && l.subjectName === s.name)
+  );
   let totalScore = 0;
-  kidSubjects.forEach(subj => {
+  kidSubjectsWithLessons.forEach(subj => {
     totalScore += getSubjectRating(kid.id, subj.name);
   });
-  
-  const overallPercentage = kidSubjects.length > 0 ? Math.round((totalScore / (kidSubjects.length * 10)) * 100) : 0;
+  const overallPercentage = kidSubjectsWithLessons.length > 0
+    ? Math.round((totalScore / (kidSubjectsWithLessons.length * 10)) * 100)
+    : 0;
   
   // Find weakest subject (from subjects that have lessons)
   const uniqueSubjectsWithLessons = [...new Set(kidLessons.map(l => l.subjectName))];
