@@ -317,6 +317,22 @@
       </div>
     </div>
 
+    <!-- MODAL: CONFIRM DIALOG (replaces browser confirm()) -->
+    <div class="modal-backdrop" id="modal-confirm">
+      <div class="modal-content card" style="max-width:360px">
+        <div class="modal-header">
+          <h3 id="confirm-title">Are you sure?</h3>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-message" style="margin:0 0 1.5rem;line-height:1.5"></p>
+          <div style="display:flex;gap:.75rem;justify-content:flex-end">
+            <button id="confirm-cancel" class="btn btn-secondary">Cancel</button>
+            <button id="confirm-ok" class="btn btn-danger">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL: UPDATE PROFICIENCY RATINGS -->
     <div class="modal-backdrop" id="modal-update-ratings">
       <div class="modal-content card">

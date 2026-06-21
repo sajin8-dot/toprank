@@ -609,6 +609,35 @@ function closeModal(modalEl) {
   }
 }
 
+// Non-blocking replacement for window.confirm() — avoids INP violations.
+// Usage: showConfirm('Title', 'Message text', okLabel).then(ok => { if (ok) ... });
+function showConfirm(title, message, okLabel = 'OK') {
+  return new Promise(resolve => {
+    const backdrop = document.getElementById('modal-confirm');
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-message').textContent = message;
+    document.getElementById('confirm-ok').textContent = okLabel;
+    backdrop.classList.add('active');
+
+    const cleanup = (result) => {
+      backdrop.classList.remove('active');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      backdrop.removeEventListener('click', onBackdrop);
+      resolve(result);
+    };
+    const onOk = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    const onBackdrop = (e) => { if (e.target === backdrop) cleanup(false); };
+
+    const okBtn = document.getElementById('confirm-ok');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    backdrop.addEventListener('click', onBackdrop);
+  });
+}
+
 document.querySelectorAll('.btn-close-modal, .btn-cancel').forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -1089,17 +1118,15 @@ function renderJournal() {
     });
 
     // Hook exam complete button
-    card.querySelector('.btn-exam-complete').addEventListener('click', () => {
-      if (confirm(`Exam completed! 🥳 Are you sure you want to remove '${lesson.topicName}' from the board? A kid won't have to revisit this lesson.`)) {
-        completeLesson(lesson.id);
-      }
+    card.querySelector('.btn-exam-complete').addEventListener('click', async () => {
+      const ok = await showConfirm('Exam Complete 🥳', `Remove '${lesson.topicName}' from the board? A kid won't have to revisit this lesson.`, 'Remove');
+      if (ok) completeLesson(lesson.id);
     });
 
     // Hook delete button
-    card.querySelector('.btn-delete-lesson').addEventListener('click', () => {
-      if (confirm(`Are you sure you want to delete '${lesson.topicName}'? Use this if it was a wrong entry.`)) {
-        deleteLesson(lesson.id);
-      }
+    card.querySelector('.btn-delete-lesson').addEventListener('click', async () => {
+      const ok = await showConfirm('Delete Lesson', `Delete '${lesson.topicName}'? Use this only if it was a wrong entry.`, 'Delete');
+      if (ok) deleteLesson(lesson.id);
     });
 
     // Hook inline proficiency sliders
@@ -1322,9 +1349,9 @@ function renderQuizCalendar(container) {
 
         dot.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (confirm(`Scheduled Quiz details:\nSubject: ${quiz.subjectName}\nTopic: ${quiz.topicName}\nDate: ${quiz.date}\n\nDo you want to delete this quiz?`)) {
-            deleteQuiz(quiz.id);
-          }
+          showConfirm('Delete Quiz', `${quiz.subjectName} — ${quiz.topicName}\nDate: ${quiz.date}\n\nDelete this quiz?`, 'Delete').then(ok => {
+            if (ok) deleteQuiz(quiz.id);
+          });
         });
         dotsContainer.appendChild(dot);
       });
@@ -1358,10 +1385,9 @@ function renderMasterSubjects() {
       startEditSubject(subj.name);
     });
     
-    row.querySelector('.btn-delete-subject').addEventListener('click', () => {
-      if (confirm(`Are you sure you want to remove '${subj.name}' from the Master List? You will no longer be able to select it for new lessons.`)) {
-        deleteSubject(subj.name);
-      }
+    row.querySelector('.btn-delete-subject').addEventListener('click', async () => {
+      const ok = await showConfirm('Remove Subject', `Remove '${subj.name}' from the Master List? You will no longer be able to select it for new lessons.`, 'Remove');
+      if (ok) deleteSubject(subj.name);
     });
 
     elMasterSubjectsList.appendChild(row);
@@ -1899,8 +1925,9 @@ document.getElementById('btn-cancel-subject-edit').addEventListener('click', () 
 });
 
 // Clear Logs
-document.getElementById('btn-clear-logs').addEventListener('click', () => {
-  if (confirm("Are you sure you want to clear the Activity Log for this kid?")) {
+document.getElementById('btn-clear-logs').addEventListener('click', async () => {
+  const ok = await showConfirm('Clear Activity Log', 'Are you sure you want to clear the Activity Log for this kid?', 'Clear');
+  if (ok) {
     state.logs = state.logs.filter(l => l.kidId !== state.currentKidId);
     saveState();
     renderActivityLog();
