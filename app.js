@@ -362,10 +362,18 @@ function hideLoadingScreen() {
   if (el) el.classList.add('hidden');
 }
 
+// Prevents concurrent syncWithSupabase() calls from racing each other.
+let syncInProgress = false;
+
 async function syncWithSupabase(retryCount = 0) {
+  // Ignore background sync triggers while a startup sync is still running.
+  if (syncInProgress && retryCount === 0) return;
+  if (retryCount === 0) syncInProgress = true;
+
   if (!supabaseClient) {
     updateSyncStatus('offline');
     hideLoadingScreen();
+    syncInProgress = false;
     return;
   }
 
@@ -386,18 +394,16 @@ async function syncWithSupabase(retryCount = 0) {
       renderAll();
       populateSubjectDropdowns();
       updateSyncStatus('synced');
+      hideLoadingScreen();
     } else {
-      // No row in Supabase yet — mark ready without seeding.
-      console.log("No server state found. Waiting for first user action to seed.");
-      appReady = true;
-      renderAll();
-      populateSubjectDropdowns();
-      updateSyncStatus('synced');
+      // No row found — do NOT set appReady or render: wait until first explicit user write.
+      // This prevents writing DEFAULT_STATE if Supabase momentarily returns 0 rows.
+      console.warn("No row found in Supabase. Startup blocked until data appears.");
+      updateSyncStatus('error');
+      hideLoadingScreen();
     }
-    hideLoadingScreen();
   } catch (e) {
     console.error("Failed to load state from Supabase:", e);
-    // Retry up to 3 times with exponential backoff before giving up
     if (retryCount < 3) {
       const delay = Math.pow(2, retryCount) * 2000;
       console.log(`Retrying sync in ${delay}ms (attempt ${retryCount + 1}/3)...`);
@@ -405,37 +411,33 @@ async function syncWithSupabase(retryCount = 0) {
       if (errEl) errEl.classList.remove('hidden');
       updateSyncStatus(navigator.onLine ? 'error' : 'offline');
       setTimeout(() => syncWithSupabase(retryCount + 1), delay);
+      return; // keep syncInProgress = true while retrying
     } else {
-      console.error("Supabase sync failed after 3 retries. App is read-only.");
-      // Do NOT set appReady — block writes until we successfully load
+      console.error("Supabase sync failed after 3 retries.");
       updateSyncStatus(navigator.onLine ? 'error' : 'offline');
       hideLoadingScreen();
-      // Show a non-destructive empty state (no subjects/lessons)
-      state = { ...JSON.parse(JSON.stringify(DEFAULT_STATE)), subjects: [], lessons: [], quizzes: [], logs: [] };
-      renderAll();
-      populateSubjectDropdowns();
+      // appReady stays false — no writes can happen
     }
   }
+  syncInProgress = false;
 }
 
-// Hook offline/online window events to update status dot
+// Background syncs: only fire if startup sync has already completed.
 window.addEventListener('online', () => {
-  console.log("App online. Triggering sync...");
-  syncWithSupabase();
+  if (appReady) syncWithSupabase();
 });
 window.addEventListener('offline', () => {
   updateSyncStatus('offline');
 });
 
-// Poll Supabase for updates every 30 minutes in case of changes from other devices
+// Poll every 30 minutes only after initial load succeeded
 setInterval(() => {
-  console.log("Scheduled 30-minute sync trigger...");
-  syncWithSupabase();
+  if (appReady) syncWithSupabase();
 }, 30 * 60 * 1000);
 
 // Also sync immediately when the user switches back to the tab/app
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
+  if (document.visibilityState === 'visible' && appReady) {
     console.log("App focused/visible. Triggering background sync...");
     syncWithSupabase();
   }
