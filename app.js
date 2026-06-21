@@ -2037,7 +2037,10 @@ if (btnMenuLock) {
 // Reconstruct PREP index for a kid on a given date string (YYYY-MM-DD)
 // by reversing/applying decay from each subsection's current baseRating.
 function computeHistoricalPrep(kidId, dateStr) {
-  const target = new Date(dateStr + 'T12:00:00');
+  const today = new Date().toISOString().slice(0, 10);
+  // For today use the current time so lessons added this morning are included.
+  // For past dates use noon to get a stable mid-day snapshot.
+  const target = dateStr === today ? new Date() : new Date(dateStr + 'T12:00:00');
   const kidSubjects = state.subjects.filter(s => s.kidId === kidId);
   if (kidSubjects.length === 0) return null;
 
