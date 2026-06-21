@@ -308,6 +308,9 @@ async function forceSaveStateToSupabase() {
 }
 
 let syncTimeout = null;
+// Guard: blocks saveState() until the initial Supabase load has completed.
+// Prevents DEFAULT_STATE from being written to Supabase during startup.
+let appReady = false;
 
 // Record today's PREP index snapshot for every kid
 function recordPrepSnapshots() {
@@ -327,6 +330,7 @@ function recordPrepSnapshots() {
 // --- Save State ---
 // Writes directly to Supabase only (no localStorage). Debounced by 1s.
 function saveState() {
+  if (!appReady) return; // never write DEFAULT_STATE before Supabase has loaded
   recordPrepSnapshots();
   state.updatedAt = new Date().toISOString();
 
@@ -371,15 +375,19 @@ async function syncWithSupabase() {
       console.log("Loading state from Supabase...");
       state = list[0].state_json;
       runMigrations();
+      appReady = true;
       renderAll();
       populateSubjectDropdowns();
       updateSyncStatus('synced');
     } else {
       console.log("No server state found. Seeding Supabase with default state...");
+      appReady = true; // safe to write — no existing data to protect
       await forceSaveStateToSupabase();
     }
   } catch (e) {
     console.error("Failed to load state from Supabase:", e);
+    // Still mark ready so the user can use the app offline
+    appReady = true;
     updateSyncStatus(navigator.onLine ? 'error' : 'offline');
   }
 }
