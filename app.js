@@ -2127,6 +2127,11 @@ function renderPrepChart() {
     ? ''
     : `${pathD} L${xScale(entries.length - 1)},${PT + iH} L${xScale(0)},${PT + iH} Z`;
 
+  const subjectColor = (() => {
+    const subj = state.subjects.find(s => s.kidId === kid.id);
+    return subj ? subj.color : 'var(--brand-pink)';
+  })();
+
   // Dots with tooltip
   let dots = '';
   entries.forEach(([date, v], i) => {
@@ -2152,11 +2157,6 @@ function renderPrepChart() {
   const todayPrepLabel = entries.length === 1
     ? `<text x="${xScale(0)}" y="${yScale(entries[0][1]) - 10}" text-anchor="middle" font-size="11" font-weight="bold" fill="${subjectColor}">${entries[0][1]}%</text>`
     : '';
-
-  const subjectColor = (() => {
-    const subj = state.subjects.find(s => s.kidId === kid.id);
-    return subj ? subj.color : 'var(--brand-pink)';
-  })();
 
   container.innerHTML = `
     <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;overflow:visible;">
