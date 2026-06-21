@@ -313,16 +313,15 @@ let syncTimeout = null;
 // Prevents DEFAULT_STATE from being written to Supabase during startup.
 let appReady = false;
 
-// Record today's PREP index snapshot for every kid
+// Record today's PREP index snapshot for every kid.
+// Uses computeHistoricalPrep (base ratings + decay math) for accuracy —
+// avoids double-counting decay that getSubjectRating would introduce.
 function recordPrepSnapshots() {
   const today = new Date().toISOString().slice(0, 10);
   if (!state.prepHistory) state.prepHistory = {};
   state.kids.forEach(kid => {
-    const kidSubjects = state.subjects.filter(s => s.kidId === kid.id);
-    if (kidSubjects.length === 0) return;
-    let total = 0;
-    kidSubjects.forEach(subj => { total += getSubjectRating(kid.id, subj.name); });
-    const pct = Math.round((total / (kidSubjects.length * 10)) * 100);
+    const pct = computeHistoricalPrep(kid.id, today);
+    if (pct === null) return;
     if (!state.prepHistory[kid.id]) state.prepHistory[kid.id] = {};
     state.prepHistory[kid.id][today] = pct;
   });
@@ -378,6 +377,8 @@ async function syncWithSupabase(retryCount = 0) {
   }
 
   updateSyncStatus('syncing');
+  let scheduleNextRetry = false;
+
   try {
     const { data: list, error } = await supabaseClient
       .from('toprank_state')
@@ -387,8 +388,12 @@ async function syncWithSupabase(retryCount = 0) {
     if (error) throw error;
 
     if (list && list.length > 0) {
+      const stateJson = list[0].state_json;
+      if (!stateJson || typeof stateJson !== 'object') {
+        throw new Error('state_json from Supabase is null or invalid');
+      }
       console.log("Loading state from Supabase...");
-      state = list[0].state_json;
+      state = stateJson;
       runMigrations();
       appReady = true;
       renderAll();
@@ -396,11 +401,12 @@ async function syncWithSupabase(retryCount = 0) {
       updateSyncStatus('synced');
       hideLoadingScreen();
     } else {
-      // No row found — do NOT set appReady or render: wait until first explicit user write.
-      // This prevents writing DEFAULT_STATE if Supabase momentarily returns 0 rows.
-      console.warn("No row found in Supabase. Startup blocked until data appears.");
+      // No row found — could be first install or a transient glitch.
+      // Retry after 10 s rather than deadlocking with appReady=false forever.
+      console.warn("No row found in Supabase. Will retry in 10s.");
       updateSyncStatus('error');
       hideLoadingScreen();
+      scheduleNextRetry = true;
     }
   } catch (e) {
     console.error("Failed to load state from Supabase:", e);
@@ -410,8 +416,7 @@ async function syncWithSupabase(retryCount = 0) {
       const errEl = document.getElementById('loading-error-msg');
       if (errEl) errEl.classList.remove('hidden');
       updateSyncStatus(navigator.onLine ? 'error' : 'offline');
-      setTimeout(() => syncWithSupabase(retryCount + 1), delay);
-      return; // keep syncInProgress = true while retrying
+      scheduleNextRetry = true;
     } else {
       console.error("Supabase sync failed after 3 retries.");
       updateSyncStatus(navigator.onLine ? 'error' : 'offline');
@@ -419,7 +424,15 @@ async function syncWithSupabase(retryCount = 0) {
       // appReady stays false — no writes can happen
     }
   }
+
+  // Clear the in-progress flag before scheduling the next attempt so that
+  // the retry call isn't blocked by the guard at the top of this function.
   syncInProgress = false;
+
+  if (scheduleNextRetry) {
+    const delay = retryCount < 3 ? Math.pow(2, retryCount) * 2000 : 10000;
+    setTimeout(() => syncWithSupabase(retryCount < 3 ? retryCount + 1 : 0), delay);
+  }
 }
 
 // Background syncs: only fire if startup sync has already completed.
