@@ -392,14 +392,32 @@ async function syncWithSupabase(retryCount = 0) {
       if (!stateJson || typeof stateJson !== 'object') {
         throw new Error('state_json from Supabase is null or invalid');
       }
-      console.log("Loading state from Supabase...");
-      state = stateJson;
-      runMigrations();
-      appReady = true;
-      renderAll();
-      populateSubjectDropdowns();
-      updateSyncStatus('synced');
-      hideLoadingScreen();
+
+      if (!appReady) {
+        // Initial startup load — always trust the server.
+        console.log("Loading state from Supabase...");
+        state = stateJson;
+        runMigrations();
+        appReady = true;
+        renderAll();
+        populateSubjectDropdowns();
+        updateSyncStatus('synced');
+        hideLoadingScreen();
+      } else {
+        // Background refresh — only replace local state if the server copy
+        // is genuinely newer. This prevents a stale Supabase fetch from
+        // overwriting local changes that are still in the 1s debounce window.
+        const serverTs = stateJson.updatedAt || list[0].updated_at;
+        const localTs = state.updatedAt;
+        if (serverTs && localTs && new Date(serverTs) > new Date(localTs)) {
+          console.log("Background sync: server state is newer, refreshing...");
+          state = stateJson;
+          runMigrations();
+          renderAll();
+          populateSubjectDropdowns();
+        }
+        updateSyncStatus('synced');
+      }
     } else {
       // No row found — could be first install or a transient glitch.
       // Retry after 10 s rather than deadlocking with appReady=false forever.
