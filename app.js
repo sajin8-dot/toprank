@@ -289,6 +289,7 @@ function updateSyncStatus(status) {
 
 async function forceSaveStateToSupabase() {
   if (!supabaseClient) return;
+  if (!appReady) return; // never seed with DEFAULT_STATE
   updateSyncStatus('syncing');
   try {
     const { error } = await supabaseClient
@@ -380,14 +381,15 @@ async function syncWithSupabase() {
       populateSubjectDropdowns();
       updateSyncStatus('synced');
     } else {
-      console.log("No server state found. Seeding Supabase with default state...");
-      appReady = true; // safe to write — no existing data to protect
-      await forceSaveStateToSupabase();
+      // No row in Supabase yet — mark ready without seeding.
+      // User must make an explicit change to trigger the first write.
+      console.log("No server state found. Waiting for first user action to seed.");
+      appReady = true;
+      updateSyncStatus('synced');
     }
   } catch (e) {
     console.error("Failed to load state from Supabase:", e);
-    // Still mark ready so the user can use the app offline
-    appReady = true;
+    // Do NOT set appReady on error — block writes until we successfully load
     updateSyncStatus(navigator.onLine ? 'error' : 'offline');
   }
 }
