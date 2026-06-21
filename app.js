@@ -357,9 +357,15 @@ function saveState() {
   }
 }
 
-async function syncWithSupabase() {
+function hideLoadingScreen() {
+  const el = document.getElementById('loading-screen');
+  if (el) el.classList.add('hidden');
+}
+
+async function syncWithSupabase(retryCount = 0) {
   if (!supabaseClient) {
     updateSyncStatus('offline');
+    hideLoadingScreen();
     return;
   }
 
@@ -382,15 +388,33 @@ async function syncWithSupabase() {
       updateSyncStatus('synced');
     } else {
       // No row in Supabase yet — mark ready without seeding.
-      // User must make an explicit change to trigger the first write.
       console.log("No server state found. Waiting for first user action to seed.");
       appReady = true;
+      renderAll();
+      populateSubjectDropdowns();
       updateSyncStatus('synced');
     }
+    hideLoadingScreen();
   } catch (e) {
     console.error("Failed to load state from Supabase:", e);
-    // Do NOT set appReady on error — block writes until we successfully load
-    updateSyncStatus(navigator.onLine ? 'error' : 'offline');
+    // Retry up to 3 times with exponential backoff before giving up
+    if (retryCount < 3) {
+      const delay = Math.pow(2, retryCount) * 2000;
+      console.log(`Retrying sync in ${delay}ms (attempt ${retryCount + 1}/3)...`);
+      const errEl = document.getElementById('loading-error-msg');
+      if (errEl) errEl.classList.remove('hidden');
+      updateSyncStatus(navigator.onLine ? 'error' : 'offline');
+      setTimeout(() => syncWithSupabase(retryCount + 1), delay);
+    } else {
+      console.error("Supabase sync failed after 3 retries. App is read-only.");
+      // Do NOT set appReady — block writes until we successfully load
+      updateSyncStatus(navigator.onLine ? 'error' : 'offline');
+      hideLoadingScreen();
+      // Show a non-destructive empty state (no subjects/lessons)
+      state = { ...JSON.parse(JSON.stringify(DEFAULT_STATE)), subjects: [], lessons: [], quizzes: [], logs: [] };
+      renderAll();
+      populateSubjectDropdowns();
+    }
   }
 }
 
@@ -2277,9 +2301,7 @@ if (elPrepChartToggle && elPrepChartBody) {
 
 checkAuthentication();
 loadState();
-renderAll();
-populateSubjectDropdowns();
-syncWithSupabase();
+syncWithSupabase(); // renders the app once Supabase data is loaded
 
 // Theme Toggle Event Listener
 const btnThemeToggle = document.getElementById('btn-theme-toggle');

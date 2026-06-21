@@ -17,6 +17,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
+  <!-- Loading Overlay (shown while syncing with Supabase on startup) -->
+  <div id="loading-screen" class="loading-screen-overlay">
+    <div class="loading-card">
+      <div class="loading-logo">
+        <h1>TopRank</h1>
+        <p class="tagline">Loading your data…</p>
+      </div>
+      <div class="loading-spinner"></div>
+      <p id="loading-error-msg" class="loading-error hidden">Could not reach Supabase. Retrying…</p>
+    </div>
+  </div>
+
   <!-- Lock Screen Overlay -->
   <div id="lock-screen" class="lock-screen-overlay">
     <div class="lock-card">

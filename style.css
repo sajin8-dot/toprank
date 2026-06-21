@@ -1996,6 +1996,57 @@ body.dark .menu-profile-name {
   display: none;
 }
 
+/* --- LOADING SCREEN --- */
+.loading-screen-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: radial-gradient(circle at top left, var(--brand-pink-light), #fcfbfa 60%),
+              radial-gradient(circle at bottom right, #f8d4da, #faf0f2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.loading-screen-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.loading-card .loading-logo h1 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--brand-pink);
+  margin: 0 0 4px;
+}
+.loading-card .tagline {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.loading-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--brand-pink-light);
+  border-top-color: var(--brand-pink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-error {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.loading-error.hidden { display: none; }
+
 /* --- LOCK SCREEN STYLES (Frosted Glass & Warm Pink-Purple Gradient) --- */
 .lock-screen-overlay {
   position: fixed;
