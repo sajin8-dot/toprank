@@ -2039,20 +2039,21 @@ function renderPrepChart() {
     .map(date => [date, computeHistoricalPrep(kid.id, date)])
     .filter(([, v]) => v !== null);
 
-  if (entries.length < 2) {
-    container.innerHTML = `<p class="card-hint" style="padding:12px 0; text-align:center; color:var(--text-muted); font-size:0.85rem;">No historical data found. Scores will appear here as you log activity.</p>`;
+  if (entries.length === 0) {
+    container.innerHTML = `<p class="card-hint" style="padding:12px 0; text-align:center; color:var(--text-muted); font-size:0.85rem;">No data yet. Set proficiency scores to see the PREP index.</p>`;
     return;
   }
 
   const W = 600, H = 160, PL = 36, PR = 12, PT = 12, PB = 28;
   const iW = W - PL - PR, iH = H - PT - PB;
 
-  const vals = entries.map(([, v]) => v);
-  const minV = Math.max(0, Math.min(...vals) - 10);
-  const maxV = Math.min(100, Math.max(...vals) + 10);
+  // Fixed 0–100 scale so changes are always visually apparent
+  const minV = 0, maxV = 100;
 
-  const xScale = i => PL + (i / (entries.length - 1)) * iW;
-  const yScale = v => PT + iH - ((v - minV) / (maxV - minV || 1)) * iH;
+  const xScale = i => entries.length === 1
+    ? PL + iW / 2
+    : PL + (i / (entries.length - 1)) * iW;
+  const yScale = v => PT + iH - ((v - minV) / (maxV - minV)) * iH;
 
   // Y gridlines
   let gridLines = '';
@@ -2062,8 +2063,12 @@ function renderPrepChart() {
     gridLines += `<text x="${PL - 4}" y="${y + 4}" text-anchor="end" font-size="9" fill="var(--text-muted)">${v}</text>`;
   });
 
-  const pathD = entries.map(([, v], i) => `${i === 0 ? 'M' : 'L'}${xScale(i)},${yScale(v)}`).join(' ');
-  const fillD = `${pathD} L${xScale(entries.length - 1)},${PT + iH} L${xScale(0)},${PT + iH} Z`;
+  const pathD = entries.length === 1
+    ? `M${xScale(0)},${yScale(entries[0][1])}`
+    : entries.map(([, v], i) => `${i === 0 ? 'M' : 'L'}${xScale(i)},${yScale(v)}`).join(' ');
+  const fillD = entries.length === 1
+    ? ''
+    : `${pathD} L${xScale(entries.length - 1)},${PT + iH} L${xScale(0)},${PT + iH} Z`;
 
   // Dots with tooltip
   let dots = '';
@@ -2074,7 +2079,7 @@ function renderPrepChart() {
     dots += `<circle cx="${x}" cy="${y}" r="${isToday ? 5 : 3.5}" fill="${isToday ? 'var(--brand-pink)' : subjectColor}" stroke="#fff" stroke-width="1.5"><title>${label}: ${v}%</title></circle>`;
   });
 
-  // X axis labels: first, last, ~3 in between
+  // X axis labels
   let xLabels = '';
   const labelIndices = new Set([0, entries.length - 1]);
   if (entries.length > 4) {
@@ -2086,6 +2091,10 @@ function renderPrepChart() {
     const label = new Date(date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     xLabels += `<text x="${xScale(i)}" y="${H - 4}" text-anchor="middle" font-size="9" fill="var(--text-muted)">${label}</text>`;
   });
+  // For single point, still show a value label
+  const todayPrepLabel = entries.length === 1
+    ? `<text x="${xScale(0)}" y="${yScale(entries[0][1]) - 10}" text-anchor="middle" font-size="11" font-weight="bold" fill="${subjectColor}">${entries[0][1]}%</text>`
+    : '';
 
   const subjectColor = (() => {
     const subj = state.subjects.find(s => s.kidId === kid.id);
@@ -2101,10 +2110,11 @@ function renderPrepChart() {
         </linearGradient>
       </defs>
       ${gridLines}
-      <path d="${fillD}" fill="url(#prepFill_${kid.id})"/>
-      <path d="${pathD}" fill="none" stroke="${subjectColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${fillD ? `<path d="${fillD}" fill="url(#prepFill_${kid.id})"/>` : ''}
+      ${entries.length > 1 ? `<path d="${pathD}" fill="none" stroke="${subjectColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
       ${dots}
       ${xLabels}
+      ${todayPrepLabel}
     </svg>`;
 }
 
