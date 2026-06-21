@@ -305,6 +305,26 @@ h1, h2, h3, h4 {
 .streak-calendar-section {
   padding: 10px 0 4px;
 }
+
+/* === Prep Index Chart === */
+.prep-chart-section {
+  padding: 4px 0 4px;
+}
+.prep-chart-body {
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  max-height: 300px;
+}
+.prep-chart-body.collapsed {
+  max-height: 0;
+}
+#prep-chart-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 12px 14px 8px;
+  margin-top: 6px;
+}
 .streak-calendar-inner {
   background: var(--bg-card);
   border: 1px solid var(--border-light);

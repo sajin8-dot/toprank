@@ -129,9 +129,10 @@ const DEFAULT_STATE = {
     
     { id: "log-5", kidId: "kid-eliah", timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), type: "lesson", message: "Lesson 'Addition & Regrouping' added to Maths with 2 sub-sections." }
   ],
-  dateOffset: 0, // Days added dynamically for simulation
+  dateOffset: 0,
   theme: "light",
-  quizView: "list"
+  quizView: "list",
+  prepHistory: {}
 };
 
 // --- App State ---
@@ -140,6 +141,7 @@ let state = {};
 // --- Migrations & Validation ---
 function runMigrations() {
   if (typeof state.dateOffset === 'undefined') state.dateOffset = 0;
+  if (typeof state.prepHistory === 'undefined') state.prepHistory = {};
   
   let migrated = false;
   
@@ -307,9 +309,25 @@ async function forceSaveStateToSupabase() {
 
 let syncTimeout = null;
 
+// Record today's PREP index snapshot for every kid
+function recordPrepSnapshots() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!state.prepHistory) state.prepHistory = {};
+  state.kids.forEach(kid => {
+    const kidSubjects = state.subjects.filter(s => s.kidId === kid.id);
+    if (kidSubjects.length === 0) return;
+    let total = 0;
+    kidSubjects.forEach(subj => { total += getSubjectRating(kid.id, subj.name); });
+    const pct = Math.round((total / (kidSubjects.length * 10)) * 100);
+    if (!state.prepHistory[kid.id]) state.prepHistory[kid.id] = {};
+    state.prepHistory[kid.id][today] = pct;
+  });
+}
+
 // --- Save State ---
 // Writes directly to Supabase only (no localStorage). Debounced by 1s.
 function saveState() {
+  recordPrepSnapshots();
   state.updatedAt = new Date().toISOString();
 
   if (supabaseClient) {
@@ -1937,6 +1955,89 @@ if (btnMenuLock) {
 }
 
 
+// --- PREP INDEX CHART ---
+function renderPrepChart() {
+  const container = document.getElementById('prep-chart-container');
+  if (!container) return;
+
+  const kid = state.kids.find(k => k.id === state.currentKidId);
+  if (!kid) return;
+
+  const history = (state.prepHistory && state.prepHistory[kid.id]) || {};
+  const entries = Object.entries(history).sort(([a], [b]) => a.localeCompare(b));
+
+  if (entries.length < 2) {
+    container.innerHTML = `<p class="card-hint" style="padding:12px 0; text-align:center; color:var(--text-muted); font-size:0.85rem;">Keep studying — chart will appear once there are at least 2 days of data.</p>`;
+    return;
+  }
+
+  const W = 600, H = 160, PL = 36, PR = 12, PT = 12, PB = 28;
+  const iW = W - PL - PR, iH = H - PT - PB;
+
+  const vals = entries.map(([, v]) => v);
+  const minV = Math.max(0, Math.min(...vals) - 10);
+  const maxV = Math.min(100, Math.max(...vals) + 10);
+
+  const xScale = i => PL + (i / (entries.length - 1)) * iW;
+  const yScale = v => PT + iH - ((v - minV) / (maxV - minV)) * iH;
+
+  // Y gridlines
+  let gridLines = '';
+  [0, 25, 50, 75, 100].filter(v => v >= minV && v <= maxV).forEach(v => {
+    const y = yScale(v);
+    gridLines += `<line x1="${PL}" y1="${y}" x2="${W - PR}" y2="${y}" stroke="var(--border-light)" stroke-width="1" stroke-dasharray="3,3"/>`;
+    gridLines += `<text x="${PL - 4}" y="${y + 4}" text-anchor="end" font-size="9" fill="var(--text-muted)">${v}</text>`;
+  });
+
+  // Line path
+  const points = entries.map(([, v], i) => `${xScale(i)},${yScale(v)}`).join(' ');
+  const pathD = entries.map(([, v], i) => `${i === 0 ? 'M' : 'L'}${xScale(i)},${yScale(v)}`).join(' ');
+
+  // Fill area under line
+  const fillD = `${pathD} L${xScale(entries.length - 1)},${PT + iH} L${xScale(0)},${PT + iH} Z`;
+
+  // Dots + tooltips
+  let dots = '';
+  entries.forEach(([date, v], i) => {
+    const x = xScale(i), y = yScale(v);
+    const label = new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    dots += `<circle cx="${x}" cy="${y}" r="3.5" fill="var(--brand-pink)" stroke="#fff" stroke-width="1.5"><title>${label}: ${v}%</title></circle>`;
+  });
+
+  // X axis date labels (show first, last, and ~3 in between)
+  let xLabels = '';
+  const labelIndices = new Set([0, entries.length - 1]);
+  if (entries.length > 4) {
+    const step = Math.floor(entries.length / 3);
+    for (let i = step; i < entries.length - 1; i += step) labelIndices.add(i);
+  }
+  labelIndices.forEach(i => {
+    const [date] = entries[i];
+    const label = new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    xLabels += `<text x="${xScale(i)}" y="${H - 4}" text-anchor="middle" font-size="9" fill="var(--text-muted)">${label}</text>`;
+  });
+
+  const subjectColor = (() => {
+    const subj = state.subjects.find(s => s.kidId === kid.id);
+    return subj ? subj.color : 'var(--brand-pink)';
+  })();
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;overflow:visible;">
+      <defs>
+        <linearGradient id="prepFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${subjectColor}" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="${subjectColor}" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      ${gridLines}
+      <path d="${fillD}" fill="url(#prepFill)"/>
+      <path d="${pathD}" fill="none" stroke="${subjectColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+      ${xLabels}
+    </svg>`;
+}
+
 // --- STREAK CALENDAR ---
 function renderStreakCalendar() {
   const section = document.getElementById('streak-calendar-section');
@@ -2019,6 +2120,7 @@ function renderAll() {
   renderKidSelector();
   renderKidStats();
   renderStreakCalendar();
+  renderPrepChart();
   renderSubjectOverviewAccordion();
   renderJournal();
   renderQuizzes();
@@ -2079,6 +2181,17 @@ if (elSummaryToggle && elAccordionDashboard && elSummaryArrow) {
   elSummaryToggle.addEventListener('click', () => {
     const isCollapsed = elAccordionDashboard.classList.toggle('collapsed');
     elSummaryArrow.textContent = isCollapsed ? '▶' : '▼';
+  });
+}
+
+const elPrepChartToggle = document.getElementById('prep-chart-toggle');
+const elPrepChartBody = document.getElementById('prep-chart-body');
+const elPrepChartArrow = document.getElementById('prep-chart-arrow');
+
+if (elPrepChartToggle && elPrepChartBody) {
+  elPrepChartToggle.addEventListener('click', () => {
+    const isCollapsed = elPrepChartBody.classList.toggle('collapsed');
+    if (elPrepChartArrow) elPrepChartArrow.textContent = isCollapsed ? '▶' : '▼';
   });
 }
 
