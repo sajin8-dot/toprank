@@ -330,7 +330,12 @@ function recordPrepSnapshots() {
 // --- Save State ---
 // Writes directly to Supabase only (no localStorage). Debounced by 1s.
 function saveState() {
-  if (!appReady) return; // never write DEFAULT_STATE before Supabase has loaded
+  if (!appReady) return; // never write before Supabase has loaded
+  // Safety: refuse to write if state looks empty — something has gone wrong upstream
+  if (!state.kids || state.kids.length === 0 || !state.subjects) {
+    console.error("saveState() blocked: state is structurally empty", state);
+    return;
+  }
   recordPrepSnapshots();
   state.updatedAt = new Date().toISOString();
 
