@@ -574,6 +574,7 @@ const formAddSubject = document.getElementById('add-subject-form');
 let currentJournalFilter = "All";
 let editingSubjectName = null;
 let editingLessonId = null;
+let editingQuizId = null;
 
 // --- Navigation Tabs Handling ---
 document.querySelectorAll('.nav-tab').forEach(tabBtn => {
@@ -601,11 +602,16 @@ function openModal(modalEl) {
 
 function closeModal(modalEl) {
   modalEl.classList.remove('active');
-  // If the lesson modal is closed without saving, reset it back to add-mode
   if (modalEl === modalAddLesson && editingLessonId) {
     editingLessonId = null;
     modalAddLesson.querySelector('h3').textContent = '＋ Add Lesson';
     modalAddLesson.querySelector('button[type="submit"]').textContent = 'Add Lesson';
+  }
+  if (modalEl === modalAddQuiz && editingQuizId) {
+    editingQuizId = null;
+    modalAddQuiz.querySelector('h3').textContent = '＋ Schedule Quiz/Test';
+    modalAddQuiz.querySelector('button[type="submit"]').textContent = 'Schedule Quiz';
+    formAddQuiz.reset();
   }
 }
 
@@ -1245,9 +1251,22 @@ function renderQuizzes() {
       
       <div class="quiz-footer">
         <span class="days-left-badge ${daysBadgeClass}">${daysLabel}</span>
-        <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-delete-quiz" data-id="${quiz.id}" title="Delete Quiz">🗑️</button>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-edit-quiz" data-id="${quiz.id}" title="Edit Quiz">✏️</button>
+          <button class="btn btn-secondary btn-sm btn-round-sm btn-icon-only btn-delete-quiz" data-id="${quiz.id}" title="Delete Quiz">🗑️</button>
+        </div>
       </div>
     `;
+
+    card.querySelector('.btn-edit-quiz').addEventListener('click', () => {
+      editingQuizId = quiz.id;
+      modalAddQuiz.querySelector('h3').textContent = '✏️ Edit Quiz';
+      modalAddQuiz.querySelector('button[type="submit"]').textContent = 'Save Changes';
+      document.getElementById('quiz-subject').value = quiz.subjectName;
+      document.getElementById('quiz-topic').value = quiz.topicName;
+      document.getElementById('quiz-date').value = quiz.date;
+      openModal(modalAddQuiz);
+    });
 
     card.querySelector('.btn-delete-quiz').addEventListener('click', () => {
       deleteQuiz(quiz.id);
@@ -1772,30 +1791,42 @@ formAddLesson.addEventListener('submit', (e) => {
 });
 
 
-// Form Submission: Add Quiz
+// Form Submission: Add / Edit Quiz
 formAddQuiz.addEventListener('submit', (e) => {
   e.preventDefault();
 
   const subjName = document.getElementById('quiz-subject').value;
   const topic = document.getElementById('quiz-topic').value;
   const quizDate = document.getElementById('quiz-date').value;
-
-  const newQuiz = {
-    id: 'q-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
-    kidId: state.currentKidId,
-    subjectName: subjName,
-    topicName: topic,
-    date: quizDate
-  };
-
-  state.quizzes.push(newQuiz);
-  
   const daysToGo = calculateDaysToGo(quizDate);
-  logActivity(state.currentKidId, "quiz", `Scheduled new quiz for '${topic}' in ${subjName} on ${new Date(quizDate + 'T00:00:00').toLocaleDateString()} (${daysToGo} days to go).`);
-  
+
+  if (editingQuizId) {
+    const quiz = state.quizzes.find(q => q.id === editingQuizId);
+    if (quiz) {
+      const oldDate = quiz.date;
+      quiz.subjectName = subjName;
+      quiz.topicName = topic;
+      quiz.date = quizDate;
+      logActivity(state.currentKidId, "quiz", `Updated quiz '${topic}' in ${subjName}: date changed from ${oldDate} to ${quizDate}.`);
+    }
+    editingQuizId = null;
+  } else {
+    const newQuiz = {
+      id: 'q-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+      kidId: state.currentKidId,
+      subjectName: subjName,
+      topicName: topic,
+      date: quizDate
+    };
+    state.quizzes.push(newQuiz);
+    logActivity(state.currentKidId, "quiz", `Scheduled new quiz for '${topic}' in ${subjName} on ${new Date(quizDate + 'T00:00:00').toLocaleDateString()} (${daysToGo} days to go).`);
+  }
+
   saveState();
   closeModal(modalAddQuiz);
   formAddQuiz.reset();
+  modalAddQuiz.querySelector('h3').textContent = '＋ Schedule Quiz/Test';
+  modalAddQuiz.querySelector('button[type="submit"]').textContent = 'Schedule Quiz';
   renderAll();
 });
 
