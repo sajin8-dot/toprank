@@ -1114,6 +1114,11 @@ h1, h2, h3, h4 {
   justify-content: space-between;
 }
 
+.quiz-card-body {
+  flex: 1;
+  user-select: none;
+}
+
 .quiz-header {
   display: flex;
   justify-content: space-between;
@@ -1124,6 +1129,94 @@ h1, h2, h3, h4 {
 .quiz-subject-tag {
   align-self: flex-start;
 }
+
+/* Prep badge shown on each quiz card */
+.quiz-prep-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+.quiz-prep-badge.good    { background:#d1f7ec; color:#0fb9b1; }
+.quiz-prep-badge.ok      { background:#fff3d1; color:#d48300; }
+.quiz-prep-badge.weak    { background:#ffe5e5; color:#e74c3c; }
+.quiz-prep-badge.none    { background:#f0f0f0; color:#888; }
+
+/* Expandable lessons panel */
+.quiz-lessons-expand {
+  display: none;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-light);
+}
+.quiz-expanded .quiz-lessons-expand {
+  display: block;
+}
+.quiz-lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+}
+.quiz-lesson-name {
+  flex: 0 0 40%;
+  color: var(--text-dark);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.quiz-lesson-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.quiz-lesson-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.quiz-lesson-pct {
+  flex: 0 0 34px;
+  text-align: right;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+/* Portions checklist in Add Quiz modal */
+.quiz-portions-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.quiz-portion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.quiz-portion-item:hover { background: var(--bg-light); }
+.quiz-portion-item input[type="checkbox"] { accent-color: var(--brand-pink); width:16px; height:16px; }
+.quiz-portion-name { flex: 1; }
+.quiz-portion-score {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+.quiz-portion-score.good { background:#d1f7ec; color:#0fb9b1; }
+.quiz-portion-score.ok   { background:#fff3d1; color:#d48300; }
+.quiz-portion-score.weak { background:#ffe5e5; color:#e74c3c; }
+.quiz-portion-score.none { background:#f0f0f0; color:#888; }
 
 .quiz-topic {
   font-size: 1.1rem;

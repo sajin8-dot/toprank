@@ -309,6 +309,11 @@
             <label for="quiz-date">Exam Date</label>
             <input type="date" id="quiz-date" required>
           </div>
+          <div class="form-group" id="quiz-portions-group" style="display:none">
+            <label>Portions (Lessons)</label>
+            <p class="form-hint" style="margin:2px 0 8px;font-size:0.8rem;color:var(--text-muted)">Tick which lessons are covered in this exam</p>
+            <div id="quiz-portions-list" class="quiz-portions-checklist"></div>
+          </div>
           <div class="modal-actions">
             <button type="button" class="btn btn-secondary btn-cancel">Cancel</button>
             <button type="submit" class="btn btn-primary">Schedule Quiz</button>

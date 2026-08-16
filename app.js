@@ -547,6 +547,23 @@ function getSubjectRating(kidId, subjectName) {
   return parseFloat((sum / kidLessons.length).toFixed(2));
 }
 
+// Lessons that count for a quiz's prep score.
+// Uses quiz.lessonIds when set; falls back to all lessons for the subject.
+function getQuizLessons(quiz) {
+  if (quiz.lessonIds && quiz.lessonIds.length > 0) {
+    return state.lessons.filter(l => quiz.lessonIds.includes(l.id));
+  }
+  return state.lessons.filter(l => l.kidId === quiz.kidId && l.subjectName === quiz.subjectName);
+}
+
+// PREP % for a specific quiz (0-100), or null when no lessons are linked.
+function getQuizPrepIndex(quiz) {
+  const lessons = getQuizLessons(quiz);
+  if (lessons.length === 0) return null;
+  const sum = lessons.reduce((acc, l) => acc + getLessonRating(l), 0);
+  return Math.round((sum / (lessons.length * 10)) * 100);
+}
+
 // Return the nearest upcoming quiz for a kid+subject (today or later), or null.
 function getNextExam(kidId, subjectName) {
   const today = new Date().toISOString().slice(0, 10);
@@ -1288,20 +1305,43 @@ function renderQuizzes() {
     card.className = 'card quiz-card';
     card.style.borderTopColor = subjConfig.color;
 
-    const quizDateObj = new Date(quiz.date + 'T00:00:00'); // enforce local timezone representation
+    const quizDateObj = new Date(quiz.date + 'T00:00:00');
     const formattedDate = quizDateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 
+    const prepPct = getQuizPrepIndex(quiz);
+    const prepBadgeClass = prepPct === null ? '' : getScoreBadgeClass(prepPct / 10);
+    const prepBadgeHtml = prepPct !== null
+      ? `<span class="quiz-prep-badge ${prepBadgeClass}" title="Prep index for this exam">${prepPct}%</span>`
+      : '';
+
+    const quizLessons = getQuizLessons(quiz);
+    const lessonsHtml = quizLessons.map(l => {
+      const r = getLessonRating(l);
+      const pct = Math.round((r / 10) * 100);
+      const cls = getScoreBadgeClass(r);
+      return `
+        <div class="quiz-lesson-row">
+          <span class="quiz-lesson-name">${l.topicName}</span>
+          <div class="quiz-lesson-bar-wrap">
+            <div class="quiz-lesson-bar" style="width:${pct}%;background-color:${subjConfig.color}"></div>
+          </div>
+          <span class="quiz-lesson-pct ${cls}">${pct}%</span>
+        </div>`;
+    }).join('');
+
     card.innerHTML = `
-      <div>
+      <div class="quiz-card-body" style="cursor:${quizLessons.length ? 'pointer' : 'default'}">
         <div class="quiz-header">
           <span class="subject-badge-pill quiz-subject-tag" style="background-color: ${subjConfig.color};">${quiz.subjectName}</span>
+          ${prepBadgeHtml}
         </div>
         <h4 class="quiz-topic">${quiz.topicName}</h4>
         <div class="quiz-date-row">
           <span>Date: <strong>${formattedDate}</strong></span>
         </div>
+        ${quizLessons.length ? `<div class="quiz-lessons-expand">${lessonsHtml}</div>` : ''}
       </div>
-      
+
       <div class="quiz-footer">
         <span class="days-left-badge ${daysBadgeClass}">${daysLabel}</span>
         <div style="display:flex;gap:.4rem">
@@ -1311,6 +1351,13 @@ function renderQuizzes() {
       </div>
     `;
 
+    // Expand/collapse lessons on body click.
+    if (quizLessons.length) {
+      card.querySelector('.quiz-card-body').addEventListener('click', () => {
+        card.classList.toggle('quiz-expanded');
+      });
+    }
+
     card.querySelector('.btn-edit-quiz').addEventListener('click', () => {
       editingQuizId = quiz.id;
       modalAddQuiz.querySelector('h3').textContent = '✏️ Edit Quiz';
@@ -1318,6 +1365,7 @@ function renderQuizzes() {
       document.getElementById('quiz-subject').value = quiz.subjectName;
       document.getElementById('quiz-topic').value = quiz.topicName;
       document.getElementById('quiz-date').value = quiz.date;
+      refreshQuizPortionsChecklist(quiz.subjectName, quiz.lessonIds || []);
       openModal(modalAddQuiz);
     });
 
@@ -1556,6 +1604,32 @@ function populateSubjectDropdowns() {
   lessonSubjSelect.innerHTML = optionsHtml;
   quizSubjSelect.innerHTML = optionsHtml;
 }
+
+// Populate the portions checklist in the quiz modal for a given subject.
+function refreshQuizPortionsChecklist(subjectName, checkedIds = []) {
+  const group = document.getElementById('quiz-portions-group');
+  const list = document.getElementById('quiz-portions-list');
+  const lessons = state.lessons.filter(
+    l => l.kidId === state.currentKidId && l.subjectName === subjectName
+  );
+  if (!lessons.length) { group.style.display = 'none'; return; }
+  group.style.display = 'block';
+  list.innerHTML = lessons.map(l => {
+    const rating = getLessonRating(l);
+    const pct = Math.round((rating / 10) * 100);
+    return `
+      <label class="quiz-portion-item">
+        <input type="checkbox" name="quiz-lesson" value="${l.id}" ${checkedIds.includes(l.id) ? 'checked' : ''}>
+        <span class="quiz-portion-name">${l.topicName}</span>
+        <span class="quiz-portion-score ${getScoreBadgeClass(rating)}">${pct}%</span>
+      </label>`;
+  }).join('');
+}
+
+// Wire subject dropdown to refresh portions checklist.
+document.getElementById('quiz-subject').addEventListener('change', function () {
+  refreshQuizPortionsChecklist(this.value);
+});
 
 // Complete Lesson (Exam Complete)
 function completeLesson(lessonId) {
@@ -1853,6 +1927,10 @@ formAddQuiz.addEventListener('submit', (e) => {
   const quizDate = document.getElementById('quiz-date').value;
   const daysToGo = calculateDaysToGo(quizDate);
 
+  // Collect ticked lesson IDs from the portions checklist.
+  const lessonIds = [...document.querySelectorAll('#quiz-portions-list input[name="quiz-lesson"]:checked')]
+    .map(cb => cb.value);
+
   if (editingQuizId) {
     const quiz = state.quizzes.find(q => q.id === editingQuizId);
     if (quiz) {
@@ -1860,6 +1938,7 @@ formAddQuiz.addEventListener('submit', (e) => {
       quiz.subjectName = subjName;
       quiz.topicName = topic;
       quiz.date = quizDate;
+      quiz.lessonIds = lessonIds;
       logActivity(state.currentKidId, "quiz", `Updated quiz '${topic}' in ${subjName}: date changed from ${oldDate} to ${quizDate}.`);
     }
     editingQuizId = null;
@@ -1869,7 +1948,8 @@ formAddQuiz.addEventListener('submit', (e) => {
       kidId: state.currentKidId,
       subjectName: subjName,
       topicName: topic,
-      date: quizDate
+      date: quizDate,
+      lessonIds: lessonIds
     };
     state.quizzes.push(newQuiz);
     logActivity(state.currentKidId, "quiz", `Scheduled new quiz for '${topic}' in ${subjName} on ${new Date(quizDate + 'T00:00:00').toLocaleDateString()} (${daysToGo} days to go).`);
@@ -1878,6 +1958,7 @@ formAddQuiz.addEventListener('submit', (e) => {
   saveState();
   closeModal(modalAddQuiz);
   formAddQuiz.reset();
+  document.getElementById('quiz-portions-group').style.display = 'none';
   modalAddQuiz.querySelector('h3').textContent = '＋ Schedule Quiz/Test';
   modalAddQuiz.querySelector('button[type="submit"]').textContent = 'Schedule Quiz';
   renderAll();
