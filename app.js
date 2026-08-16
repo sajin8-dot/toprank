@@ -542,9 +542,65 @@ function getLessonRating(lesson) {
 function getSubjectRating(kidId, subjectName) {
   const kidLessons = state.lessons.filter(l => l.kidId === kidId && l.subjectName === subjectName);
   if (kidLessons.length === 0) return 0; // default to 0 if no lessons exist yet
-  
+
   const sum = kidLessons.reduce((acc, lesson) => acc + getLessonRating(lesson), 0);
   return parseFloat((sum / kidLessons.length).toFixed(2));
+}
+
+// Return the nearest upcoming quiz for a kid+subject (today or later), or null.
+function getNextExam(kidId, subjectName) {
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = state.quizzes
+    .filter(q => q.kidId === kidId && q.subjectName === subjectName && q.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  return upcoming[0] || null;
+}
+
+// Urgency weight based on days until exam.
+// Subjects with a near exam get a much higher weight so they dominate the index.
+// w = 1 + 7/days → 1 day = 8, 3 days = 3.3, 7 days = 2, 14 days = 1.5, no exam = 1
+function examUrgencyWeight(daysToExam) {
+  if (daysToExam === null) return 1;
+  return 1 + 7 / Math.max(daysToExam, 1);
+}
+
+// Days between today and an exam date string (YYYY-MM-DD). Returns null if no exam.
+function daysUntilExam(examDateStr) {
+  if (!examDateStr) return null;
+  const today = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00');
+  const examDate = new Date(examDateStr + 'T00:00:00');
+  return Math.max(0, Math.round((examDate - today) / 86400000));
+}
+
+// Exam-urgency-weighted PREP index (0-100).
+// Subjects with near exams contribute proportionally more to the score.
+function computeWeightedPrepIndex(kidId) {
+  const subjectsWithLessons = state.subjects
+    .filter(s => s.kidId === kidId)
+    .filter(s => state.lessons.some(l => l.kidId === kidId && l.subjectName === s.name));
+  if (subjectsWithLessons.length === 0) return 0;
+
+  let weightedSum = 0;
+  let totalWeight = 0;
+  subjectsWithLessons.forEach(subj => {
+    const prepScore = getSubjectRating(kidId, subj.name) / 10; // 0–1
+    const exam = getNextExam(kidId, subj.name);
+    const days = exam ? daysUntilExam(exam.date) : null;
+    const w = examUrgencyWeight(days);
+    weightedSum += prepScore * w;
+    totalWeight += w;
+  });
+  return Math.round((weightedSum / totalWeight) * 100);
+}
+
+// Subject urgency score: combines how unprepared it is with how near the exam is.
+// Higher score = needs coaching most urgently.
+function subjectUrgencyScore(kidId, subjectName) {
+  const prepScore = getSubjectRating(kidId, subjectName) / 10;
+  const exam = getNextExam(kidId, subjectName);
+  const days = exam ? daysUntilExam(exam.date) : null;
+  const w = examUrgencyWeight(days);
+  return (1 - prepScore) * w;
 }
 
 // --- DOM References ---
@@ -747,41 +803,30 @@ function renderKidStats() {
   const kidLessons = state.lessons.filter(l => l.kidId === kid.id);
   const activeQuizzes = state.quizzes.filter(q => q.kidId === kid.id);
   
-  // Calculate overall preparation index — only count subjects that have lessons,
-  // matching the chart's computeHistoricalPrep which also excludes lesson-less subjects.
-  const kidSubjects = state.subjects.filter(s => s.kidId === kid.id);
-  const kidSubjectsWithLessons = kidSubjects.filter(s =>
-    state.lessons.some(l => l.kidId === kid.id && l.subjectName === s.name)
-  );
-  let totalScore = 0;
-  kidSubjectsWithLessons.forEach(subj => {
-    totalScore += getSubjectRating(kid.id, subj.name);
-  });
-  const overallPercentage = kidSubjectsWithLessons.length > 0
-    ? Math.round((totalScore / (kidSubjectsWithLessons.length * 10)) * 100)
-    : 0;
-  
-  // Find weakest subject (from subjects that have lessons)
+  // Exam-urgency-weighted PREP index.
+  const overallPercentage = computeWeightedPrepIndex(kid.id);
+
+  // Find the most urgent subject to coach: combines low prep + near exam.
   const uniqueSubjectsWithLessons = [...new Set(kidLessons.map(l => l.subjectName))];
-  let weakestSubj = "None";
-  let minScore = 11;
+  let coachSubj = "None";
+  let highestUrgency = -1;
   uniqueSubjectsWithLessons.forEach(subjName => {
-    const score = getSubjectRating(kid.id, subjName);
-    if (score < minScore) {
-      minScore = score;
-      weakestSubj = subjName;
+    const urgency = subjectUrgencyScore(kid.id, subjName);
+    if (urgency > highestUrgency) {
+      highestUrgency = urgency;
+      coachSubj = subjName;
     }
   });
 
-  const weakestDisplayText = weakestSubj !== 'None' ? weakestSubj : 'None yet';
+  const weakestDisplayText = coachSubj !== 'None' ? coachSubj : 'None yet';
 
   elKidSummary.innerHTML = `
     <div class="kid-summary-meta">
       <h2>${kid.name}'s Learning Board</h2>
       <p>Tracking school items for ${kid.std}</p>
     </div>
-    <div class="stat-box">
-      <span class="stat-label">Prep Index</span>
+    <div class="stat-box" title="Exam-weighted: subjects with near exams count more">
+      <span class="stat-label">Prep Index ★</span>
       <span class="stat-val">${overallPercentage}%</span>
     </div>
     <div class="stat-box">
@@ -789,7 +834,7 @@ function renderKidStats() {
       <span class="stat-val">${kidLessons.length}</span>
     </div>
     <div class="stat-box weakest">
-      <span class="stat-label">Weakest Subject</span>
+      <span class="stat-label">Coach Next</span>
       <span class="stat-val stat-val-subject">${weakestDisplayText}</span>
     </div>
   `;
@@ -813,7 +858,8 @@ function renderSubjectOverviewAccordion() {
     const score = getSubjectRating(kid.id, subj.name);
     const kidLessons = state.lessons.filter(l => l.kidId === kid.id && l.subjectName === subj.name);
     const kidQuizzes = state.quizzes.filter(q => q.kidId === kid.id && q.subjectName === subj.name);
-    
+    const urgency = kidLessons.length > 0 ? subjectUrgencyScore(kid.id, subj.name) : -1;
+
     return {
       name: subj.name,
       color: subj.color,
@@ -821,16 +867,16 @@ function renderSubjectOverviewAccordion() {
       lessonCount: kidLessons.length,
       quizCount: kidQuizzes.length,
       lessons: kidLessons,
-      quizzes: kidQuizzes
+      quizzes: kidQuizzes,
+      urgency: urgency
     };
   });
 
-  // Sort: Least prepared subject (lowest score) first.
-  // If scores are equal, subjects with lessons come before subjects with no lessons (0 score but no data).
+  // Sort: most urgent subject first (exam-aware). Subjects with no lessons sink to the bottom.
   subjectScores.sort((a, b) => {
-    if (a.lessonCount === 0 && b.lessonCount > 0) return 1; // Put empty subjects at bottom or top?
+    if (a.lessonCount === 0 && b.lessonCount > 0) return 1;
     if (b.lessonCount === 0 && a.lessonCount > 0) return -1;
-    return a.score - b.score;
+    return b.urgency - a.urgency;
   });
 
   // Load accordion states from session/temp memory to persist expansions across updates
@@ -856,9 +902,16 @@ function renderSubjectOverviewAccordion() {
     const header = document.createElement('div');
     header.className = 'accordion-header';
     header.style.borderLeftColor = subj.color;
+    const nextExam = getNextExam(kid.id, subj.name);
+    const examDays = nextExam ? daysUntilExam(nextExam.date) : null;
+    const examChip = nextExam
+      ? `<span class="exam-days-chip ${examDays <= 3 ? 'urgent' : examDays <= 7 ? 'soon' : 'later'}" title="${nextExam.topicName}">${examDays === 0 ? 'Exam today!' : examDays === 1 ? 'Exam tomorrow' : `Exam in ${examDays}d`}</span>`
+      : '';
+
     header.innerHTML = `
       <div class="accordion-subject-info">
         <span class="accordion-subject-name">${subj.name}</span>
+        ${examChip}
       </div>
       <div class="prep-score-indicator">
         <div class="prep-progress-bar-outer">

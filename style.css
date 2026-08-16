@@ -647,6 +647,27 @@ h1, h2, h3, h4 {
   color: var(--text-dark);
 }
 
+.exam-days-chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.exam-days-chip.urgent {
+  background-color: #ffe5e5;
+  color: var(--color-weak);
+  animation: pulse 1.5s infinite;
+}
+.exam-days-chip.soon {
+  background-color: #fff3d1;
+  color: #d48300;
+}
+.exam-days-chip.later {
+  background-color: #d1f7ec;
+  color: #0fb9b1;
+}
+
 /* Progress ring / meter */
 .prep-score-indicator {
   display: flex;
