@@ -664,6 +664,8 @@ document.querySelectorAll('.nav-tab').forEach(tabBtn => {
       renderActivityLog();
     } else if (targetPaneId === 'tab-subjects') {
       renderMasterSubjects();
+    } else if (targetPaneId === 'tab-study-plan') {
+      renderStudyPlan();
     }
   });
 });
@@ -1563,7 +1565,70 @@ function cancelEditSubject() {
   document.getElementById('btn-cancel-subject-edit').style.display = 'none';
 }
 
-// 7. Render Activity Log
+// 7. Render Study Plan (top 5 priority lessons)
+function getStudyPlanItems(kidId) {
+  const lessons = state.lessons.filter(l => l.kidId === kidId);
+  return lessons
+    .map(l => {
+      const rating = getLessonRating(l);
+      const exam = getNextExam(kidId, l.subjectName);
+      const days = exam ? daysUntilExam(exam.date) : null;
+      const urgency = (1 - rating / 10) * examUrgencyWeight(days);
+      return { lesson: l, rating, urgency, exam, days };
+    })
+    .sort((a, b) => b.urgency - a.urgency)
+    .slice(0, 5);
+}
+
+function renderStudyPlan() {
+  const container = document.getElementById('study-plan-list');
+  const kid = state.kids.find(k => k.id === state.currentKidId);
+  if (!kid) return;
+
+  const items = getStudyPlanItems(kid.id);
+
+  if (!items.length) {
+    container.innerHTML = '<p class="empty-state">No lessons yet. Add some lessons to generate a study plan.</p>';
+    return;
+  }
+
+  container.innerHTML = items.map((item, idx) => {
+    const { lesson, rating, exam, days } = item;
+    const pct = Math.round((rating / 10) * 100);
+    const badgeClass = pct >= 70 ? 'good' : pct >= 40 ? 'ok' : 'weak';
+    const examLine = exam
+      ? `<span class="sp-exam-chip ${days <= 3 ? 'urgent' : days <= 7 ? 'soon' : 'later'}">${days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days}d`} · ${lesson.subjectName}</span>`
+      : `<span class="sp-subject-chip">${lesson.subjectName}</span>`;
+    return `
+      <div class="sp-card">
+        <div class="sp-rank">${idx + 1}</div>
+        <div class="sp-body">
+          <div class="sp-topic">${lesson.topicName}</div>
+          <div class="sp-meta">${examLine}</div>
+        </div>
+        <span class="sp-score ${badgeClass}">${pct}%</span>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('btn-share-study-plan').addEventListener('click', () => {
+  const kid = state.kids.find(k => k.id === state.currentKidId);
+  if (!kid) return;
+  const items = getStudyPlanItems(kid.id);
+  if (!items.length) return;
+  const lines = items.map((item, idx) => {
+    const { lesson, rating, exam, days } = item;
+    const pct = Math.round((rating / 10) * 100);
+    const examNote = exam ? ` (exam in ${days}d)` : '';
+    return `${idx + 1}. ${lesson.subjectName} — ${lesson.topicName} · ${pct}%${examNote}`;
+  });
+  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
+  const text = `📚 *${kid.name}'s Study Plan — ${today}*\n\nTop 5 lessons to revise today:\n\n${lines.join('\n')}\n\n_Focus on these before Dad gets back! 💪_`;
+  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+});
+
+// 8. Render Activity Log
 function renderActivityLog() {
   elLogTimeline.innerHTML = '';
   

@@ -136,6 +136,7 @@
         <button class="nav-tab" data-tab="tab-quizzes">Quizzes <span class="badge" id="quiz-count-badge">0</span></button>
         <button class="nav-tab" data-tab="tab-subjects">Subjects</button>
         <button class="nav-tab" data-tab="tab-log">Activity Log</button>
+        <button class="nav-tab" data-tab="tab-study-plan">Study Plan</button>
       </nav>
 
       <!-- TAB CONTENTS -->
@@ -243,6 +244,18 @@
             <div class="log-timeline" id="log-timeline-container">
               <!-- Rendered dynamically -->
             </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Study Plan -->
+        <div class="tab-pane" id="tab-study-plan">
+          <div class="pane-header">
+            <h3>Study Plan</h3>
+            <button class="btn btn-secondary btn-sm" id="btn-share-study-plan">Share via WhatsApp</button>
+          </div>
+          <p class="study-plan-subtitle">Top 5 lessons to focus on today, ranked by urgency.</p>
+          <div id="study-plan-list">
+            <!-- Rendered dynamically -->
           </div>
         </div>
 
