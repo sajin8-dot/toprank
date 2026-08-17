@@ -825,30 +825,12 @@ function renderKidStats() {
   // Exam-urgency-weighted PREP index.
   const overallPercentage = computeWeightedPrepIndex(kid.id);
 
-  // Find the most urgent subject to coach: combines low prep + near exam.
-  const uniqueSubjectsWithLessons = [...new Set(kidLessons.map(l => l.subjectName))];
-  let coachSubj = null;
-  let coachLesson = null;
-  let highestUrgency = -1;
-  uniqueSubjectsWithLessons.forEach(subjName => {
-    const urgency = subjectUrgencyScore(kid.id, subjName);
-    if (urgency > highestUrgency) {
-      highestUrgency = urgency;
-      coachSubj = subjName;
-    }
-  });
-
-  if (coachSubj) {
-    // Within the most urgent subject, find the lesson with the lowest rating.
-    const subjLessons = kidLessons.filter(l => l.subjectName === coachSubj);
-    coachLesson = subjLessons.reduce((weakest, l) =>
-      getLessonRating(l) < getLessonRating(weakest) ? l : weakest
-    , subjLessons[0]);
-  }
-
-  const coachSubjText = coachSubj || 'None yet';
-  const coachLessonHtml = coachLesson
-    ? `<span class="coach-lesson">${coachLesson.topicName}</span>`
+  // Coach Next = #1 from Study Plan so both always agree.
+  const topPlanItems = getStudyPlanItems(kid.id);
+  const topItem = topPlanItems[0] || null;
+  const coachSubjText = topItem ? topItem.lesson.subjectName : 'None yet';
+  const coachLessonHtml = topItem
+    ? `<span class="coach-lesson">${topItem.lesson.topicName}</span>`
     : '';
 
   elKidSummary.innerHTML = `
