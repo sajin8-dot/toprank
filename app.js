@@ -825,7 +825,8 @@ function renderKidStats() {
 
   // Find the most urgent subject to coach: combines low prep + near exam.
   const uniqueSubjectsWithLessons = [...new Set(kidLessons.map(l => l.subjectName))];
-  let coachSubj = "None";
+  let coachSubj = null;
+  let coachLesson = null;
   let highestUrgency = -1;
   uniqueSubjectsWithLessons.forEach(subjName => {
     const urgency = subjectUrgencyScore(kid.id, subjName);
@@ -835,7 +836,18 @@ function renderKidStats() {
     }
   });
 
-  const weakestDisplayText = coachSubj !== 'None' ? coachSubj : 'None yet';
+  if (coachSubj) {
+    // Within the most urgent subject, find the lesson with the lowest rating.
+    const subjLessons = kidLessons.filter(l => l.subjectName === coachSubj);
+    coachLesson = subjLessons.reduce((weakest, l) =>
+      getLessonRating(l) < getLessonRating(weakest) ? l : weakest
+    , subjLessons[0]);
+  }
+
+  const coachSubjText = coachSubj || 'None yet';
+  const coachLessonHtml = coachLesson
+    ? `<span class="coach-lesson">${coachLesson.topicName}</span>`
+    : '';
 
   elKidSummary.innerHTML = `
     <div class="kid-summary-meta">
@@ -852,7 +864,8 @@ function renderKidStats() {
     </div>
     <div class="stat-box weakest">
       <span class="stat-label">Coach Next</span>
-      <span class="stat-val stat-val-subject">${weakestDisplayText}</span>
+      <span class="stat-val stat-val-subject">${coachSubjText}</span>
+      ${coachLessonHtml}
     </div>
   `;
   
