@@ -1547,19 +1547,61 @@ function cancelEditSubject() {
   document.getElementById('btn-cancel-subject-edit').style.display = 'none';
 }
 
-// 7. Render Study Plan (top 5 priority lessons)
+// 7. Render Study Plan — simulation-based, 5 steps
+// Each step: pick the most urgent subject (low avg prep × exam weight),
+// then the weakest lesson in it. Simulate 10/10 on that lesson, re-rank.
 function getStudyPlanItems(kidId) {
   const lessons = state.lessons.filter(l => l.kidId === kidId);
-  return lessons
-    .map(l => {
-      const rating = getLessonRating(l);
-      const exam = getNextExam(kidId, l.subjectName);
-      const days = exam ? daysUntilExam(exam.date) : null;
-      const urgency = (1 - rating / 10) * examUrgencyWeight(days);
-      return { lesson: l, rating, urgency, exam, days };
-    })
-    .sort((a, b) => b.urgency - a.urgency)
-    .slice(0, 5);
+  if (!lessons.length) return [];
+
+  // Mutable simulated ratings overlay: lessonId -> overridden rating
+  const simRatings = {};
+
+  const simRating = (l) => simRatings[l.id] !== undefined ? simRatings[l.id] : getLessonRating(l);
+
+  const simSubjectAvg = (subjectName) => {
+    const sl = lessons.filter(l => l.subjectName === subjectName);
+    if (!sl.length) return 0;
+    return sl.reduce((sum, l) => sum + simRating(l), 0) / sl.length;
+  };
+
+  const simSubjectUrgency = (subjectName) => {
+    const avg = simSubjectAvg(subjectName);
+    const exam = getNextExam(kidId, subjectName);
+    const days = exam ? daysUntilExam(exam.date) : null;
+    return (1 - avg / 10) * examUrgencyWeight(days);
+  };
+
+  const uniqueSubjects = [...new Set(lessons.map(l => l.subjectName))];
+  const picked = new Set(); // lessonIds already chosen
+  const items = [];
+
+  for (let step = 0; step < 5; step++) {
+    // Pick most urgent subject (excluding subjects where all lessons are already picked)
+    let bestSubj = null, bestUrgency = -1;
+    uniqueSubjects.forEach(subj => {
+      const available = lessons.filter(l => l.subjectName === subj && !picked.has(l.id));
+      if (!available.length) return;
+      const u = simSubjectUrgency(subj);
+      if (u > bestUrgency) { bestUrgency = u; bestSubj = subj; }
+    });
+    if (!bestSubj) break;
+
+    // Within that subject, pick the weakest available lesson (by simulated rating)
+    const candidates = lessons.filter(l => l.subjectName === bestSubj && !picked.has(l.id));
+    const weakest = candidates.reduce((w, l) => simRating(l) < simRating(w) ? l : w, candidates[0]);
+
+    const rating = simRating(weakest); // rating BEFORE simulated completion
+    const exam = getNextExam(kidId, weakest.subjectName);
+    const days = exam ? daysUntilExam(exam.date) : null;
+    items.push({ lesson: weakest, rating, exam, days });
+
+    // Simulate 10/10 on this lesson and mark as picked
+    simRatings[weakest.id] = 10;
+    picked.add(weakest.id);
+  }
+
+  return items;
 }
 
 function renderStudyPlan() {
