@@ -1647,7 +1647,7 @@ document.getElementById('btn-share-study-plan').addEventListener('click', () => 
     return `${idx + 1}. ${lesson.subjectName} — ${lesson.topicName} · ${pct}%${examNote}`;
   });
   const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
-  const text = `📚 *${kid.name}'s Study Plan — ${today}*\n\nTop 5 lessons to revise today:\n\n${lines.join('\n')}\n\n_Focus on these before Dad gets back! 💪_`;
+  const text = `📚 *${kid.name}'s Study Plan — ${today}*\n\nTop 5 lessons to revise today:\n\n${lines.join('\n')}\n\n_Focus on these before Appa gets back! 💪_`;
   const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
   window.open(url, '_blank');
 });
