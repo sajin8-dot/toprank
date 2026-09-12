@@ -1582,6 +1582,9 @@ function getStudyPlanItems(kidId) {
     uniqueSubjects.forEach(subj => {
       const available = lessons.filter(l => l.subjectName === subj && !picked.has(l.id));
       if (!available.length) return;
+      // Skip subjects whose exam is today — too late to prep
+      const exam = getNextExam(kidId, subj);
+      if (exam && daysUntilExam(exam.date) === 0) return;
       const u = simSubjectUrgency(subj);
       if (u > bestUrgency) { bestUrgency = u; bestSubj = subj; }
     });
